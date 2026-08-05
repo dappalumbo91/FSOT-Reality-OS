@@ -1,0 +1,9 @@
+[package]
+name = "reality_os_sched"
+version = "0.1.0"
+edition = "2021"
+description = "FSOT Reality OS — cooperative domain scheduler (no_std)"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+reality_os_scalar = { path = "../reality_os_scalar" }

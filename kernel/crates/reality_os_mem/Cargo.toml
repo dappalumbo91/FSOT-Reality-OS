@@ -1,0 +1,9 @@
+[package]
+name = "reality_os_mem"
+version = "0.1.0"
+edition = "2021"
+description = "FSOT Reality OS — physical frame allocator from bootloader memory map"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+bootloader = { version = "0.9.35", default-features = false }

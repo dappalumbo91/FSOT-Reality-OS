@@ -1,0 +1,9 @@
+[package]
+name = "reality_os_trinary"
+version = "0.1.0"
+edition = "2021"
+description = "FSOT Reality OS — Metatron/FSOTB trinary ISA interpreter (no_std)"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+reality_os_scalar = { path = "../reality_os_scalar" }

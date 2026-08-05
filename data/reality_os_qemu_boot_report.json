@@ -1,36 +1,32 @@
 {
-  "generated_at": "2026-08-05T23:55:00+00:00",
+  "generated_at": "2026-08-06T00:15:00+00:00",
   "os": "FSOT Reality OS",
-  "version": "0.2",
+  "version": "0.3",
   "language": "Rust no_std",
   "pin": "D1D38A",
-  "boot_image": "data/reality_os_kernel.img",
-  "qemu": "qemu-system-x86_64",
   "overall_ok": true,
-  "domain_table": {
-    "DOMAIN_COUNT": 530,
-    "core": 33,
-    "extension": 497,
+  "phases": {
+    "boot_scalar": true,
+    "hardware": true,
+    "domains": 530,
     "residual_finite": 530,
-    "domain_table_ok": true,
-    "sources": [
-      "fsot_atlas.sqlite domain_interfaces",
-      "benchmark_margin_audit green domains",
-      "neurolab core from expansion map",
-      "benchmark D_eff fill"
-    ]
+    "mem_ok": true,
+    "usable_frames": 32327,
+    "allocated_frames": 20,
+    "trinary_ok": true,
+    "trinary_steps": 6,
+    "trinary_r0": 7,
+    "trinary_emit_tag": 42,
+    "sched_ok": true,
+    "sched_quanta": 64,
+    "sched_tasks": 32
   },
-  "markers": {
-    "FSOT_ROS_OVERALL": "ok",
-    "FSOT_ROS_VERSION": "0.2",
-    "FSOT_QEMU_DISK_BOOT": "ok",
-    "FSOT_ROS_HW_OK": "1",
-    "FSOT_ROS_DOMAINS": 530,
-    "FSOT_ROS_DOMAINS_CORE": 33,
-    "FSOT_ROS_DOMAINS_EXT": 497,
-    "FSOT_ROS_RESIDUAL_FINITE": 530,
-    "FSOT_ROS_DOMAIN_TABLE_OK": "1",
-    "FSOT_QEMU_BOOT_SCALAR": 0.0992889562686172
-  },
-  "note": "Full covered domain registry in kernel — not a 35-domain subset."
+  "crates": [
+    "reality_os_scalar",
+    "reality_os_hw",
+    "reality_os_trinary",
+    "reality_os_mem",
+    "reality_os_sched",
+    "reality_os_kernel"
+  ]
 }

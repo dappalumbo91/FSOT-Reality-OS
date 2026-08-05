@@ -29,12 +29,22 @@ version = "0.1.0"
 
 [[package]]
 name = "reality_os_kernel"
-version = "0.1.0"
+version = "0.3.0"
 dependencies = [
  "bootloader",
  "libm",
  "reality_os_hw",
+ "reality_os_mem",
  "reality_os_scalar",
+ "reality_os_sched",
+ "reality_os_trinary",
+]
+
+[[package]]
+name = "reality_os_mem"
+version = "0.1.0"
+dependencies = [
+ "bootloader",
 ]
 
 [[package]]
@@ -42,4 +52,18 @@ name = "reality_os_scalar"
 version = "0.1.0"
 dependencies = [
  "libm",
+]
+
+[[package]]
+name = "reality_os_sched"
+version = "0.1.0"
+dependencies = [
+ "reality_os_scalar",
+]
+
+[[package]]
+name = "reality_os_trinary"
+version = "0.1.0"
+dependencies = [
+ "reality_os_scalar",
 ]

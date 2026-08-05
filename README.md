@@ -7,13 +7,16 @@
 |-----|----------------|
 | **D1D38A** | \(S = K(T_1+T_2+T_3)\) · \(c = m\,(1+\|S\|\,f)\) |
 
-## What actually boots (v0.2 — full domain table)
+## What actually boots (v0.3 — domains + trinary + mem + sched)
 
 ```text
 kernel/
-  crates/reality_os_scalar   # seed-locked scalar + FULL domain table (no_std)
-  crates/reality_os_hw       # processor / RAM / trit-pack laws (no_std)
-  crates/reality_os_kernel   # bare-metal binary + bootloader
+  crates/reality_os_scalar    # S engine + FULL domain table (530)
+  crates/reality_os_hw        # processor / RAM / trit-pack laws
+  crates/reality_os_trinary   # FSOTB/Metatron ISA interpreter (27 ops)
+  crates/reality_os_mem       # frame allocator from bootloader memory map
+  crates/reality_os_sched     # cooperative domain scheduler
+  crates/reality_os_kernel    # bare-metal binary + bootloader
 ```
 
 **Domain registry:** **530** covered interfaces (union of atlas `domain_interfaces` + all green residual margin domains + neurolab core) — **not** a 35-domain toy table.  
@@ -31,16 +34,20 @@ qemu-system-x86_64 -drive format=raw,file=target/x86_64-fsot-kernel/release/boot
 
 Or: `pwsh kernel/scripts/build_and_run.ps1`
 
-**Last verified boot:** `FSOT_ROS_OVERALL=ok` · `FSOT_ROS_DOMAINS=530` · residual_finite=530 · domain_table_ok=1 · boot scalar matches canonical.  
-Artifacts: `data/reality_os_kernel.img`, `data/reality_os_qemu_serial.log`, `data/domain_table_full.json`.
+**Last verified boot (v0.3):**  
+`FSOT_ROS_OVERALL=ok` · domains=530 · mem_ok · trinary_ok · sched_ok ·  
+usable_frames≈32k · trinary selftest r0=7 emit=42 · sched 64 quanta.  
+Artifacts: `data/reality_os_kernel.img`, `data/reality_os_qemu_serial.log`.
 
 ### Boot phases
 
-1. VGA + UART console  
-2. Boot scalar `KernelInit` (\(D_{\mathrm{eff}}=8\))  
-3. Hardware self-check (collapse θ, trit pack, VRAM law)  
-4. **Full domain table walk** — all covered domains (S + residual for every entry) + registry dump  
-5. QEMU serial markers + halt  
+1. Console + boot scalar `KernelInit`  
+2. Hardware self-check  
+3. Full domain table walk (530) + registry dump  
+4. **Memory map + frame allocator** (usable frames, allocate 20)  
+5. **Trinary ISA interpreter** (ops 0–26 registry + EVAL_PANEL/EMIT selftest)  
+6. **Cooperative scheduler** (32 domain tasks × 64 quanta)  
+7. QEMU serial markers + halt  
 
 ## Layout
 
@@ -75,9 +82,11 @@ Upstream atlas / multiprover: https://github.com/dappalumbo91/FSOT-2.1-Lean
 ## Roadmap (real OS, next)
 
 - [x] v0.1 bare-metal kernel + QEMU boot  
-- [x] v0.2 **full covered domain table** (530: atlas + green residuals + neurolab) in-kernel  
-- [ ] Trinary opcode interpreter in-kernel (`vendor/trinary_os` ISA)  
-- [ ] Memory map / frame allocator / basic scheduler  
-- [ ] Optional: Linux userspace with Reality OS as policy plane  
+- [x] v0.2 full covered domain table (530)  
+- [x] v0.3 trinary ISA interpreter + frame allocator + cooperative scheduler  
+- [ ] Page tables / heap on allocated frames (`map_physical_memory`)  
+- [ ] Wire FSOTB file loader (hello.fsotb from monorepo)  
+- [ ] Full ready-queue over all 530 domains + preemption timer  
+- [ ] Optional: Linux userspace policy plane  
 
 See [`kernel/README.md`](kernel/README.md) · [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).

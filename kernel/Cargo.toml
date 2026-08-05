@@ -3,6 +3,9 @@ resolver = "2"
 members = [
     "crates/reality_os_scalar",
     "crates/reality_os_hw",
+    "crates/reality_os_trinary",
+    "crates/reality_os_mem",
+    "crates/reality_os_sched",
     "crates/reality_os_kernel",
 ]
 default-members = ["crates/reality_os_kernel"]

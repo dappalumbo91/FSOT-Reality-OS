@@ -1,14 +1,16 @@
-//! FSOT Reality OS v0.1 — bare-metal kernel.
+//! FSOT Reality OS v0.3 — bare-metal kernel.
 //!
-//! This is a **real** `no_std` OS kernel binary (bootloader + QEMU x86_64).
-//! Python residual CLI is **not** this OS. It is a separate formula shell.
+//! Real `no_std` OS kernel (bootloader + QEMU x86_64).
+//! Python residual CLI is **not** this OS.
 //!
 //! Boot path:
-//!   1. UART + VGA console
-//!   2. Compute boot scalar S (pin D1D38A seeds)
-//!   3. Hardware self-check (collapse θ, trit pack, VRAM law)
-//!   4. Walk core domain table (S + residual demo)
-//!   5. Emit QEMU harness markers and halt
+//!   1. Console + boot scalar
+//!   2. Hardware self-check
+//!   3. Full domain table walk (all covered domains)
+//!   4. Frame allocator from memory map
+//!   5. Trinary ISA interpreter self-test
+//!   6. Cooperative domain scheduler
+//!   7. QEMU markers + halt
 
 #![no_std]
 #![no_main]
@@ -16,10 +18,13 @@
 use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
 use reality_os_hw::boot_hardware_self_check;
+use reality_os_mem::boot_mem_selftest;
 use reality_os_scalar::{
     boot_scalar, sign_trit, walk_all_domains, AUTHORITY_PIN, BOOT_SCALAR_CANONICAL, DOMAIN_COUNT,
     DOMAIN_TABLE,
 };
+use reality_os_sched::boot_sched_selftest;
+use reality_os_trinary::{opcode_registry_ok, residual_demo_ok, run_boot_selftest};
 
 entry_point!(kernel_main);
 
@@ -205,7 +210,11 @@ fn write_f64(w: &mut impl ByteSink, val: f64, precision: usize) {
 }
 
 fn write_u32_out(out: &mut Consoles<'_>, n: u32) {
-    let mut buf = [0u8; 10];
+    write_u64_out(out, n as u64);
+}
+
+fn write_u64_out(out: &mut Consoles<'_>, n: u64) {
+    let mut buf = [0u8; 20];
     let mut i = 0;
     let mut t = n;
     if t == 0 {
@@ -247,7 +256,7 @@ impl ByteSink for VgaWriter {
     }
 }
 
-fn kernel_main(_boot_info: &'static BootInfo) -> ! {
+fn kernel_main(boot_info: &'static BootInfo) -> ! {
     let mut vga = VgaWriter::new();
     let mut serial = SerialWriter;
     serial.init_uart();
@@ -259,12 +268,12 @@ fn kernel_main(_boot_info: &'static BootInfo) -> ! {
     };
 
     out.write_str("========================================\n");
-    out.write_str(" FSOT REALITY OS v0.2  (Rust no_std)\n");
+    out.write_str(" FSOT REALITY OS v0.3  (Rust no_std)\n");
     out.write_str(" Fluid Spacetime Omni-Theory kernel\n");
     out.write_str(" pin=");
     out.write_str(AUTHORITY_PIN);
     out.write_str("  S=K(T1+T2+T3)\n");
-    out.write_str(" c=m(1+|S|*f)  FULL domain table\n");
+    out.write_str(" domains+trinary+mem+sched\n");
     out.write_str("========================================\n\n");
 
     // --- Phase 1: boot scalar ---
@@ -362,11 +371,61 @@ fn kernel_main(_boot_info: &'static BootInfo) -> ! {
         && walk.residual_finite == walk.total
         && walk.total > 100;
 
-    out.write_str("\n[4] Reality OS v0.2 full-domain boot complete — QEMU markers\n");
+    // --- Phase 4: physical memory map + frame allocator ---
+    out.write_str("\n[4] Memory map + frame allocator\n");
+    let (mem_ok, mem_rep, first_frame) = boot_mem_selftest(&boot_info.memory_map);
+    out.write_str("    regions = ");
+    write_u32_out(&mut out, mem_rep.regions);
+    out.write_str("  usable_regions = ");
+    write_u32_out(&mut out, mem_rep.usable_regions);
+    out.write_str("\n    usable_frames = ");
+    write_u64_out(&mut out, mem_rep.usable_frames);
+    out.write_str("  allocated = ");
+    write_u64_out(&mut out, mem_rep.allocated);
+    out.write_str("\n    first_frame = ");
+    write_u64_out(&mut out, first_frame);
+    out.write_str("\n    mem_selftest = ");
+    out.write_str(if mem_ok { "OK\n" } else { "FAIL\n" });
+
+    // --- Phase 5: trinary ISA interpreter ---
+    out.write_str("\n[5] Trinary ISA (FSOTB / Metatron) interpreter\n");
+    let reg_ok = opcode_registry_ok();
+    let (tri_ok, tri_steps, tri_r0, tri_tag, tri_evals) = run_boot_selftest();
+    let res_ok = residual_demo_ok();
+    out.write_str("    opcode_registry_0_26 = ");
+    out.write_str(if reg_ok { "OK\n" } else { "FAIL\n" });
+    out.write_str("    selftest_steps = ");
+    write_u32_out(&mut out, tri_steps);
+    out.write_str("  r0=");
+    write_u32_out(&mut out, tri_r0 as u32);
+    out.write_str("  emit_tag=");
+    write_u32_out(&mut out, tri_tag as u32);
+    out.write_str("  evals=");
+    write_u32_out(&mut out, tri_evals);
+    out.write_str("\n    trinary_selftest = ");
+    out.write_str(if tri_ok { "OK\n" } else { "FAIL\n" });
+    out.write_str("    residual_demo = ");
+    out.write_str(if res_ok { "OK\n" } else { "FAIL\n" });
+
+    // --- Phase 6: cooperative domain scheduler ---
+    out.write_str("\n[6] Cooperative domain scheduler\n");
+    let (sched_ok, sched_tasks, sched_ran, sched_sw) = boot_sched_selftest();
+    out.write_str("    tasks = ");
+    write_u32_out(&mut out, sched_tasks);
+    out.write_str("  quanta_run = ");
+    write_u32_out(&mut out, sched_ran);
+    out.write_str("  switches = ");
+    write_u32_out(&mut out, sched_sw);
+    out.write_str("\n    sched_selftest = ");
+    out.write_str(if sched_ok { "OK\n" } else { "FAIL\n" });
+
+    let overall = domains_ok && hw.overall_ok && mem_ok && tri_ok && reg_ok && sched_ok;
+
+    out.write_str("\n[7] Reality OS v0.3 boot complete — QEMU markers\n");
     drop(out);
 
     // Machine-parseable markers (harness)
-    serial.write_str("FSOT_ROS_VERSION=0.2\n");
+    serial.write_str("FSOT_ROS_VERSION=0.3\n");
     serial.write_str("FSOT_ROS_PIN=");
     serial.write_str(AUTHORITY_PIN);
     serial.write_str("\n");
@@ -395,7 +454,28 @@ fn kernel_main(_boot_info: &'static BootInfo) -> ! {
     serial.write_str("FSOT_ROS_DOMAIN_TABLE_OK=");
     serial.write_str(if domains_ok { "1" } else { "0" });
     serial.write_str("\n");
-    serial.write_str(if domains_ok && hw.overall_ok {
+    serial.write_str("FSOT_ROS_MEM_OK=");
+    serial.write_str(if mem_ok { "1" } else { "0" });
+    serial.write_str("\n");
+    serial.write_str("FSOT_ROS_MEM_USABLE_FRAMES=");
+    serial.write_i32(mem_rep.usable_frames as i32);
+    serial.write_str("\n");
+    serial.write_str("FSOT_ROS_MEM_ALLOCATED=");
+    serial.write_i32(mem_rep.allocated as i32);
+    serial.write_str("\n");
+    serial.write_str("FSOT_ROS_TRINARY_OK=");
+    serial.write_str(if tri_ok && reg_ok { "1" } else { "0" });
+    serial.write_str("\n");
+    serial.write_str("FSOT_ROS_TRINARY_STEPS=");
+    serial.write_i32(tri_steps as i32);
+    serial.write_str("\n");
+    serial.write_str("FSOT_ROS_SCHED_OK=");
+    serial.write_str(if sched_ok { "1" } else { "0" });
+    serial.write_str("\n");
+    serial.write_str("FSOT_ROS_SCHED_QUANTA=");
+    serial.write_i32(sched_ran as i32);
+    serial.write_str("\n");
+    serial.write_str(if overall {
         "FSOT_ROS_OVERALL=ok\n"
     } else {
         "FSOT_ROS_OVERALL=fail\n"

@@ -1,8 +1,8 @@
 ========================================
- FSOT REALITY OS v0.2  (Rust no_std)
+ FSOT REALITY OS v0.3  (Rust no_std)
  Fluid Spacetime Omni-Theory kernel
  pin=D1D38A  S=K(T1+T2+T3)
- c=m(1+|S|*f)  FULL domain table
+ domains+trinary+mem+sched
 ========================================
 
 [1] Boot scalar KernelInit D_eff=8 observed
@@ -559,8 +559,24 @@
     528 extension trinary_os_round_trip D=12.0 f=0.001000
     529 extension weather_observed D=12.0 f=0.001000
 
-[4] Reality OS v0.2 full-domain boot complete — QEMU markers
-FSOT_ROS_VERSION=0.2
+[4] Memory map + frame allocator
+    regions = 15  usable_regions = 2
+    usable_frames = 32327  allocated = 20
+    first_frame = 375
+    mem_selftest = OK
+
+[5] Trinary ISA (FSOTB / Metatron) interpreter
+    opcode_registry_0_26 = OK
+    selftest_steps = 6  r0=7  emit_tag=42  evals=1
+    trinary_selftest = OK
+    residual_demo = OK
+
+[6] Cooperative domain scheduler
+    tasks = 32  quanta_run = 64  switches = 64
+    sched_selftest = OK
+
+[7] Reality OS v0.3 boot complete — QEMU markers
+FSOT_ROS_VERSION=0.3
 FSOT_ROS_PIN=D1D38A
 FSOT_QEMU_BOOT_SCALAR=0.09928895626861720
 FSOT_QEMU_CANONICAL=0.09928895626861720
@@ -571,5 +587,12 @@ FSOT_ROS_DOMAINS_CORE=33
 FSOT_ROS_DOMAINS_EXT=497
 FSOT_ROS_RESIDUAL_FINITE=530
 FSOT_ROS_DOMAIN_TABLE_OK=1
+FSOT_ROS_MEM_OK=1
+FSOT_ROS_MEM_USABLE_FRAMES=32327
+FSOT_ROS_MEM_ALLOCATED=20
+FSOT_ROS_TRINARY_OK=1
+FSOT_ROS_TRINARY_STEPS=6
+FSOT_ROS_SCHED_OK=1
+FSOT_ROS_SCHED_QUANTA=64
 FSOT_ROS_OVERALL=ok
 FSOT_QEMU_HW_OVERALL=ok
