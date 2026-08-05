@@ -11,15 +11,12 @@ additional terms or conditions.
 
 ---
 
-## Note on Linux
+## Note on Linux / Ubuntu
 
-The **Linux kernel** is licensed under **GPLv2 only** (not MIT, not Apache-2.0).
-That is a different license family (copyleft).
+The **Linux kernel** is **GPLv2-only**. Ubuntu and other distros package that
+ecosystem. FSOT Reality OS uses them only as **reference pathways** (study how a
+full OS is structured). **We do not ship Linux source as Reality OS**; we build
+our own kernel through FSOT under **MIT OR Apache-2.0**.
 
-FSOT Reality OS intentionally uses the **MIT OR Apache-2.0** dual license common
-in the Rust ecosystem so the kernel crates, host tools, and documentation can be
-combined with most permissive and many dual-licensed dependencies without forcing
-GPLv2 on downstream users.
-
-If a future Linux-kernel module or out-of-tree driver is published under GPLv2
-to match Linux, that component will carry its own explicit GPLv2 notice.
+Studying Linux does not place this repository under GPLv2. Only redistributing
+GPL-derived code would require a separate GPL-licensed component and notice.

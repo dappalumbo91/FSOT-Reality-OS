@@ -1,31 +1,58 @@
 # Architecture
 
-## Hard rule
+## Hard rules
 
-**Python is not the operating system.**
+1. **Python is not the operating system** (formula shell / residual host only).  
+2. **Linux/Ubuntu are not the operating system** — they are **reference pathways** for studying how full OSes are structured.  
+3. **We do not ship Linux code as Reality OS.** We build our own kernel and services through **FSOT**.
+
+See [`REFERENCE_OS_PATHWAYS.md`](REFERENCE_OS_PATHWAYS.md).
+
+## Constitution (FSOT)
+
+| Item | Value |
+|------|--------|
+| Pin | **D1D38A** |
+| Scalar | \(S = K(T_1+T_2+T_3)\) |
+| Residual | \(c = m\,(1+\|S\|\,f)\) with preregistered \(f\) |
+| Interfaces | Full domain table (530 covered) |
+| ISA | FSOTB / Metatron trinary opcodes |
+| License | MIT OR Apache-2.0 |
+
+## Kernel stack (what boots today)
 
 ```text
 ┌──────────────────────────────────────────────────────────────┐
-│  FSOT REALITY OS KERNEL v0.3 (Rust no_std + QEMU)            │
+│  FSOT REALITY OS KERNEL  (Rust no_std + QEMU)  — OUR CODE    │
 │  bootloader → console → S → HW → domains(530)                │
-│            → frame alloc → trinary ISA → domain scheduler    │
+│  → heap (map_physical_memory) → hello.fsotb                  │
+│  → ready-queue → IDT / PIC / IRQ0 (PIT)                      │
 ├──────────────────────────────────────────────────────────────┤
-│  reality_os_scalar    S + full domain table                  │
+│  reality_os_scalar    S + domain table                       │
 │  reality_os_hw        collapse θ / trit pack / VRAM          │
-│  reality_os_trinary   FSOTB ops 0–26 interpreter             │
-│  reality_os_mem       usable-frame bump allocator            │
-│  reality_os_sched     cooperative RR domain quanta           │
+│  reality_os_trinary   FSOTB interpreter + wire loader        │
+│  reality_os_mem       frames + heap                          │
+│  reality_os_sched     domain ready-queue + preemption        │
+│  reality_os_kernel    IDT + PIC + entry                      │
 ├──────────────────────────────────────────────────────────────┤
-│  Host formula shell (optional Python) — residual only        │
+│  Reference only (not linked into the kernel):                │
+│  Ubuntu / Linux docs & trees — schematic study               │
+├──────────────────────────────────────────────────────────────┤
+│  Host tools (optional): residual CLI, plant monitor on a     │
+│  workstation OS — sensors/dev, not the product kernel        │
 └──────────────────────────────────────────────────────────────┘
 ```
 
-## v0.4 proved (QEMU)
+## Proved under QEMU (v0.5)
 
 | Check | Result |
 |-------|--------|
-| Domains walked | **530** residual_finite=530 |
-| Heap | `map_physical_memory` phys_offset set, heap 128 KiB write/read **OK** |
-| hello.fsotb | magic/seeds/decode/run **OK**, tag=42, panel S oracle bits |
-| Scheduler | **530** tasks ready-queue, 1060 quanta, **1060 preempts** |
-| Overall | `FSOT_ROS_VERSION=0.4` · `FSOT_ROS_OVERALL=ok` |
+| Domains | 530 residual_finite |
+| Heap | write/readback OK |
+| hello.fsotb | magic/seeds/decode/run, tag=42 |
+| IRQ0 | IDT + PIC, hardware firings |
+| Overall | `FSOT_ROS_OVERALL=ok` |
+
+## License
+
+Dual **MIT OR Apache-2.0**. Linux is GPLv2; we study it, we do not relicense Reality OS as GPLv2 by default.

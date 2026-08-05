@@ -8,7 +8,8 @@
 | **Pin** | **D1D38A** · \(S = K(T_1+T_2+T_3)\) · \(c = m\,(1+\|S\|\,f)\) |
 | **License** | **MIT OR Apache-2.0** — [`LICENSE`](LICENSE) · [`LICENSE-MIT`](LICENSE-MIT) · [`LICENSE-APACHE`](LICENSE-APACHE) |
 
-> **Linux note:** The Linux kernel is **GPLv2-only**. Reality OS is **not** GPLv2; it uses the dual **MIT OR Apache-2.0** license (Rust-ecosystem standard). A future Linux-module package, if any, would carry its own GPLv2 notice.
+> **Reference OS policy:** **Ubuntu / Linux show pathways** (boot, mem, sched, VFS, drivers…) so we know what a full OS must cover. We **do not use Linux code** as Reality OS — we **build our own through FSOT** (pin D1D38A, domain table, FSOTB, residual law). Details: [`docs/REFERENCE_OS_PATHWAYS.md`](docs/REFERENCE_OS_PATHWAYS.md).  
+> **License:** Reality OS is **MIT OR Apache-2.0**. Linux is **GPLv2-only**; studying it does not put this tree under GPL.
 
 ## What actually boots (v0.5 — IDT IRQ0 + dual license)
 
@@ -83,13 +84,13 @@ source in this repository** and built/booted **here**, not via monorepo Python w
 
 Upstream atlas / multiprover: https://github.com/dappalumbo91/FSOT-2.1-Lean  
 
-## Roadmap (real OS, next)
+## Roadmap (real OS, next) — FSOT-native only
 
-- [x] v0.1–v0.4 kernel path (domains, heap, hello.fsotb, ready-queue)  
-- [x] v0.5 **IDT + PIC + IRQ0** hardware timer path  
-- [x] **MIT OR Apache-2.0** dual license (repo root)  
-- [ ] Load call_ret / spawn_join FSOTB oracles  
-- [ ] Host plant: integrate `fsot-pc-monitor` under `host/`  
-- [ ] Optional: Linux userspace policy plane (any Linux-module piece would be GPLv2-noted)  
+- [x] v0.1–v0.5 kernel (domains, heap, hello.fsotb, ready-queue, **IDT IRQ0**)  
+- [x] Dual license **MIT OR Apache-2.0**  
+- [x] Policy: reference Ubuntu/Linux pathways; **no Linux code as product**  
+- [ ] More FSOTB programs (call_ret / spawn_join)  
+- [ ] Host plant (`fsot-pc-monitor`) as **dev telemetry fold**, not the kernel  
+- [ ] FSOT-native drivers / richer ABI (informed by reference OS schematics, written by us)  
 
-See [`kernel/README.md`](kernel/README.md) · [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+See [`kernel/README.md`](kernel/README.md) · [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · [`docs/REFERENCE_OS_PATHWAYS.md`](docs/REFERENCE_OS_PATHWAYS.md).
