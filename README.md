@@ -1,10 +1,14 @@
 # FSOT Reality OS
 
-**Standalone host kernel for the FSOT fluid-spacetime fabric — built to become a real operating system.**
+**FSOT Reality OS lab — formula shell (Python) + OS spine (Rust/QEMU from monorepo).**
 
-This is **not** a dump of the full [FSOT-2.1-Lean](https://github.com/dappalumbo91/FSOT-2.1-Lean) verification monorepo.  
-That tree remains the **formula authority + residual atlas + multiprover lab**.  
-**This repository** is the **independently reproducible Reality OS**: one engine, one residual law, one CLI, and a clear path to Linux-based OS construction.
+**Hard rule:** Python is **not** an operating system. The execution spine is the
+**Rust + QEMU architecture already in** [FSOT-2.1-Lean](https://github.com/dappalumbo91/FSOT-2.1-Lean)
+(`verification/rust/*`, `vendor/rust_lean_bridge`, `verification/qemu`). This repo
+is the residual/host CLI surface that **must call that spine**, not replace it.
+
+This is **not** a dump of the full multiprover atlas. Upstream monorepo remains
+formula authority + residual atlas + multiprover + **hardware kernels**.
 
 | Pin | Master formula |
 |-----|----------------|
@@ -26,6 +30,8 @@ python scripts/reality_os_cli.py quantum
 python scripts/reality_os_cli.py trinary
 python scripts/reality_os_cli.py matter
 python scripts/reality_os_cli.py linux-path
+# OS spine (Rust kernels + QEMU in monorepo — not optional)
+python scripts/run_hardware_spine.py
 python tests/test_smoke.py
 ```
 
@@ -35,11 +41,12 @@ python tests/test_smoke.py
 
 ```text
 FSOT-Reality-OS/
-  engine/                 # fsot_compute authority + pin + dynamics
-  reality_os/             # host kernel (core, residual, quantum/trinary, matter)
-  vendor/trinary_os/isa/  # Metatron 27-opcode ABI
+  engine/                 # pin D1D38A residual authority (Python shell only)
+  reality_os/             # formula CLI (S, predict, quantum/trinary) — NOT the OS
+  hardware/               # documents + points at monorepo Rust/QEMU spine
   scripts/reality_os_cli.py
-  docs/                   # Linux OS roadmap, upstream sync
+  scripts/run_hardware_spine.py   # executes monorepo bare-metal + QEMU
+  docs/                   # architecture (Rust spine first), Linux roadmap
   tests/
 ```
 
@@ -47,15 +54,15 @@ FSOT-Reality-OS/
 
 ## What “operating system” means here
 
-You meant it. The plan is **not** a metaphor-only simulator forever:
+You meant it. The plan is **not** a Python metaphor:
 
-1. **This repo (host Reality OS)** — complete scalar fabric as a process/services layer  
-2. **Open-source Linux (or minimal kernel tree)** — proven schematics: process model, VFS, sched, net, drivers  
-3. **Re-route subsystems through FSOT architecture** — same pin, same \(S\), same residual law  
-4. **Trinary opcodes + dimensional interfaces** as native syntax, not bolted-on apps  
-5. **Hardware path** — Rust `no_std` scalar kernel → QEMU / bare metal (ported from verification lab)
+1. **OS spine (already in monorepo)** — `fsot_scalar_kernel`, `fsot_hardware_kernel`, `rust_lean_bridge`, QEMU disk/serial — **run it** via `scripts/run_hardware_spine.py`  
+2. **This repo (formula shell)** — pin-locked residual CLI only; never claimed as ring‑0  
+3. **Open-source Linux (or minimal kernel tree)** — proven schematics for full desktop/server OS  
+4. **Re-route subsystems through FSOT architecture** — same pin, same \(S\), same residual law  
+5. **Trinary opcodes + dimensional interfaces** as native syntax (`vendor/trinary_os`)
 
-See [`docs/LINUX_OS_ROADMAP.md`](docs/LINUX_OS_ROADMAP.md).
+See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · [`hardware/README.md`](hardware/README.md) · [`docs/LINUX_OS_ROADMAP.md`](docs/LINUX_OS_ROADMAP.md).
 
 ---
 

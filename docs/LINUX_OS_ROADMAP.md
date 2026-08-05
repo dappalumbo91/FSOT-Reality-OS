@@ -67,11 +67,16 @@ Pick subsystems and **add** Reality OS capabilities rather than rewriting everyt
 - [ ] Read-only `realityfs` or eBPF maps exporting fabric state  
 - [ ] No free parameters in kernel: only pin-locked constants  
 
-### Phase 5 — Bare metal / QEMU
+### Phase 5 — Bare metal / QEMU (**use monorepo spine — do not re-port later**)
 
-- [ ] Port `fsot_scalar_kernel` (Rust no_std) from monorepo verification tree  
-- [ ] QEMU boot that prints boot scalar (existing monorepo path)  
-- [ ] Optional: Reality OS init as PID 1 in a minimal initramfs  
+The crates already exist in FSOT-2.1-Lean. Reality OS must **call** them:
+
+- [x] `verification/rust/fsot_scalar_kernel` (host + no_std)  
+- [x] `verification/rust/fsot_hardware_kernel`  
+- [x] `vendor/rust_lean_bridge` + `verification/qemu`  
+- [x] Runners: `run_fsot_hardware_bare_metal.py`, `run_rust_lean_bridge_qemu_harness.py`  
+- [x] This repo: `scripts/run_hardware_spine.py` (invokes monorepo)  
+- [ ] Optional: Reality OS init as PID 1 in a minimal initramfs on that boot image  
 
 ## What we will not do
 
