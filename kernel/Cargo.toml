@@ -1,0 +1,17 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/reality_os_scalar",
+    "crates/reality_os_hw",
+    "crates/reality_os_kernel",
+]
+default-members = ["crates/reality_os_kernel"]
+
+[profile.dev]
+panic = "abort"
+opt-level = 1
+
+[profile.release]
+panic = "abort"
+opt-level = 3
+lto = true

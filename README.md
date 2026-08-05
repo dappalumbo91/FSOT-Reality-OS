@@ -1,96 +1,79 @@
 # FSOT Reality OS
 
-**FSOT Reality OS lab — formula shell (Python) + OS spine (Rust/QEMU from monorepo).**
-
-**Hard rule:** Python is **not** an operating system. The execution spine is the
-**Rust + QEMU architecture already in** [FSOT-2.1-Lean](https://github.com/dappalumbo91/FSOT-2.1-Lean)
-(`verification/rust/*`, `vendor/rust_lean_bridge`, `verification/qemu`). This repo
-is the residual/host CLI surface that **must call that spine**, not replace it.
-
-This is **not** a dump of the full multiprover atlas. Upstream monorepo remains
-formula authority + residual atlas + multiprover + **hardware kernels**.
+**A real operating system kernel in Rust (`no_std`), booted under QEMU.**  
+**Python is not the OS.** Python residual CLI is a formula shell only.
 
 | Pin | Master formula |
 |-----|----------------|
 | **D1D38A** | \(S = K(T_1+T_2+T_3)\) · \(c = m\,(1+\|S\|\,f)\) |
 
-Ontology: **fluid spacetime omni-theory**, \(D_{\mathrm{eff}}\) ceiling **25**.
+## What actually boots (v0.1)
 
----
-
-## Quick start
-
-```powershell
-cd FSOT-Reality-OS
-python -m pip install -r requirements.txt
-python scripts/reality_os_cli.py boot
-python scripts/reality_os_cli.py S Quantum_Mechanics
-python scripts/reality_os_cli.py predict Planetary_Science 2.77
-python scripts/reality_os_cli.py quantum
-python scripts/reality_os_cli.py trinary
-python scripts/reality_os_cli.py matter
-python scripts/reality_os_cli.py linux-path
-# OS spine (Rust kernels + QEMU in monorepo — not optional)
-python scripts/run_hardware_spine.py
-python tests/test_smoke.py
+```text
+kernel/
+  crates/reality_os_scalar   # seed-locked scalar engine (no_std)
+  crates/reality_os_hw       # processor / RAM / trit-pack laws (no_std)
+  crates/reality_os_kernel   # bare-metal binary + bootloader
 ```
 
----
+```powershell
+cd kernel
+cargo +nightly build -p reality_os_kernel --release
+cargo +nightly bootimage -p reality_os_kernel --release
+# QEMU:
+qemu-system-x86_64 -drive format=raw,file=target/x86_64-fsot-kernel/release/bootimage-reality_os_kernel.bin `
+  -display none -serial stdio -device isa-debug-exit,iobase=0xf4,iosize=0x04 -no-reboot
+```
+
+Or: `pwsh kernel/scripts/build_and_run.ps1`
+
+**Last verified boot:** `FSOT_ROS_OVERALL=ok` · boot scalar matches canonical · hardware self-check OK · 8 domain interfaces walked.  
+Artifacts: `data/reality_os_kernel.img`, `data/reality_os_qemu_serial.log`, `data/reality_os_qemu_boot_report.json`.
+
+### Boot phases
+
+1. VGA + UART console  
+2. Boot scalar `KernelInit` (\(D_{\mathrm{eff}}=8\))  
+3. Hardware self-check (collapse θ, trit pack, VRAM law)  
+4. Core domain table walk (\(S\) + residual predict)  
+5. QEMU serial markers + halt  
 
 ## Layout
 
 ```text
 FSOT-Reality-OS/
-  engine/                 # pin D1D38A residual authority (Python shell only)
-  reality_os/             # formula CLI (S, predict, quantum/trinary) — NOT the OS
-  hardware/               # documents + points at monorepo Rust/QEMU spine
-  scripts/reality_os_cli.py
-  scripts/run_hardware_spine.py   # executes monorepo bare-metal + QEMU
-  docs/                   # architecture (Rust spine first), Linux roadmap
-  tests/
+  kernel/                 # *** THE OPERATING SYSTEM (Rust + QEMU) ***
+  reality_os/             # formula shell only (Python residual helpers)
+  engine/                 # pin D1D38A authority copy for host residual tools
+  scripts/reality_os_cli.py   # host residual CLI — NOT the kernel
+  data/                   # boot image + QEMU serial capture
+  docs/
 ```
 
----
+## Formula shell (optional host tools)
 
-## What “operating system” means here
+```powershell
+python scripts/reality_os_cli.py boot
+python scripts/reality_os_cli.py S Quantum_Mechanics
+python scripts/reality_os_cli.py predict Planetary_Science 2.77
+```
 
-You meant it. The plan is **not** a Python metaphor:
+These do **not** replace the kernel. They share the same pin and residual law.
 
-1. **OS spine (already in monorepo)** — `fsot_scalar_kernel`, `fsot_hardware_kernel`, `rust_lean_bridge`, QEMU disk/serial — **run it** via `scripts/run_hardware_spine.py`  
-2. **This repo (formula shell)** — pin-locked residual CLI only; never claimed as ring‑0  
-3. **Open-source Linux (or minimal kernel tree)** — proven schematics for full desktop/server OS  
-4. **Re-route subsystems through FSOT architecture** — same pin, same \(S\), same residual law  
-5. **Trinary opcodes + dimensional interfaces** as native syntax (`vendor/trinary_os`)
+## Provenance
 
-See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · [`hardware/README.md`](hardware/README.md) · [`docs/LINUX_OS_ROADMAP.md`](docs/LINUX_OS_ROADMAP.md).
+Scalar and hardware laws match the verified monorepo crates  
+(`fsot_scalar_kernel`, `fsot_hardware_kernel`, `rust_lean_bridge`) — **vendored as first-class  
+source in this repository** and built/booted **here**, not via monorepo Python wrappers.
 
----
+Upstream atlas / multiprover: https://github.com/dappalumbo91/FSOT-2.1-Lean  
 
-## Relationship to FSOT-2.1-Lean
+## Roadmap (real OS, next)
 
-| FSOT-2.1-Lean | FSOT-Reality-OS |
-|---------------|-----------------|
-| Full residual atlas (400+ panels) | Host OS kernel + independent reproduce |
-| Multiprover Lean/Coq/… | Consumes verified formula (pin D1D38A) |
-| Research leaves, open science ingest | Clean surface for OS engineering |
-| Updates formula/atlas | Sync engine pin + residual factors when authority moves |
+- [x] v0.1 bare-metal kernel + QEMU boot + domain table  
+- [ ] Full 35-core domain table + preregistered \(f\) table from monorepo  
+- [ ] Trinary opcode interpreter in-kernel (`vendor/trinary_os` ISA)  
+- [ ] Memory map / frame allocator / basic scheduler  
+- [ ] Optional: Linux userspace with Reality OS as policy plane  
 
-Upstream: https://github.com/dappalumbo91/FSOT-2.1-Lean  
-Sync notes: [`docs/UPSTREAM_FSOT.md`](docs/UPSTREAM_FSOT.md)
-
----
-
-## First-class fabric (included)
-
-- **35 core domain interfaces** (live \(S\), emerge/damp syntax)  
-- **Quantum** — QM / optics / computing / gravity  
-- **Trinary string language** — trit = \(\mathrm{sign}(S)\), 27 opcodes, 25 regs = \(D_{\mathrm{eff}}\) ceiling  
-- **Matter / antimatter** — conjugate dual + seed \(\eta\), \(\Omega_b h^2\)  
-- **Residual predict** — preregistered \(f\) only  
-
----
-
-## License / science note
-
-Formula authority and residual gates remain scientific artifacts of the upstream monorepo.  
-This OS lab is for engineering a runnable system on top of that closed formula — not free-parameter retuning.
+See [`kernel/README.md`](kernel/README.md) · [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).

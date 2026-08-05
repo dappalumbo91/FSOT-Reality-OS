@@ -1,0 +1,36 @@
+[package]
+name = "reality_os_kernel"
+version = "0.1.0"
+edition = "2021"
+authors = ["Damian Arthur Palumbo <dappalumbo91>"]
+description = "FSOT Reality OS v0.1 — bare-metal kernel (Rust no_std + bootloader + QEMU)"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/dappalumbo91/FSOT-Reality-OS"
+
+[dependencies]
+bootloader = { version = "0.9.35", features = ["sse"] }
+libm = "0.2"
+reality_os_scalar = { path = "../reality_os_scalar" }
+reality_os_hw = { path = "../reality_os_hw" }
+
+[package.metadata.bootloader]
+kernel-stack-size = 256
+
+[package.metadata.bootimage]
+run-args = [
+    "-display", "none",
+    "-chardev", "stdio,mux=on,id=char0,signal=off",
+    "-serial", "chardev:char0",
+    "-device", "isa-debugcon,chardev=char0,iobase=0xe9",
+    "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-no-reboot",
+]
+test-args = [
+    "-display", "none",
+    "-chardev", "stdio,mux=on,id=char0,signal=off",
+    "-serial", "chardev:char0",
+    "-device", "isa-debugcon,chardev=char0,iobase=0xe9",
+    "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-no-reboot",
+]
+test-timeout = 20

@@ -1,0 +1,10 @@
+[package]
+name = "reality_os_hw"
+version = "0.1.0"
+edition = "2021"
+description = "FSOT Reality OS — no_std processor/RAM/trinary pack laws"
+license = "MIT OR Apache-2.0"
+
+[features]
+default = []
+std = []

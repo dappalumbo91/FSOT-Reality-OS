@@ -1,0 +1,40 @@
+========================================
+ FSOT REALITY OS v0.1  (Rust no_std)
+ Fluid Spacetime Omni-Theory kernel
+ pin=D1D38A  S=K(T1+T2+T3)
+ c=m(1+|S|*f)  ZERO free parameters
+========================================
+
+[1] Boot scalar KernelInit D_eff=8 observed
+    S_boot = 0.099288956268
+    S_canonical = 0.099288956268
+    sign(S) trit = +1 EMERGE
+
+[2] Hardware self-check (processor + RAM + trit pack)
+    collapse_theta = 0.917466377465
+    vram_usable_mib = 12258.588193
+    states_per_u64 = 32
+    trit_pack_roundtrip = OK
+    hardware_overall = OK
+
+[3] Domain interface table (core subset)
+    Particle_Physics D=12.0 S=0.096074 c(m=1)=1.004803
+    Quantum_Mechanics D=6.0 S=0.099592 c(m=1)=1.004979
+    Cosmology D=20.0 S=0.089062 c(m=1)=1.004453
+    Planetary_Science D=14.0 S=0.094229 c(m=1)=1.004711
+    Biology D=16.0 S=0.092423 c(m=1)=1.004621
+    Neuroscience D=15.0 S=0.093318 c(m=1)=1.004665
+    Energy D=12.0 S=0.096074 c(m=1)=1.004803
+    KernelInit D=8.0 S=0.099288 c(m=1)=1.000000
+    domains_walked = 8
+
+[4] Reality OS v0.1 boot complete — serial markers for QEMU
+FSOT_ROS_VERSION=0.1
+FSOT_ROS_PIN=D1D38A
+FSOT_QEMU_BOOT_SCALAR=0.09928895626861720
+FSOT_QEMU_CANONICAL=0.09928895626861720
+FSOT_QEMU_DISK_BOOT=ok
+FSOT_ROS_HW_OK=1
+FSOT_ROS_DOMAINS=8
+FSOT_ROS_OVERALL=ok
+FSOT_QEMU_HW_OVERALL=ok

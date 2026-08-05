@@ -2,55 +2,34 @@
 
 ## Hard rule
 
-**Python cannot be the operating system.**  
-Python residual CLI = formula authority shell (pin D1D38A, \(S\), \(c=m(1+|S|f)\)).
-
-**OS execution spine** = Rust kernels + QEMU already in the FSOT-2.1-Lean monorepo.
+**Python is not the operating system.**
 
 ```text
-┌──────────────────────────────────────────────────────────────┐
-│  Formula shell (Python) — residual only                      │
-│  reality_os_cli.py · engine/fsot_compute.py · pin D1D38A     │
-├──────────────────────────────────────────────────────────────┤
-│  OS execution spine (Rust + QEMU) — REQUIRED, not "future"   │
-│                                                              │
-│  monorepo verification/rust/                                 │
-│    fsot_scalar_kernel      host + no_std scalar parity       │
-│    fsot_hardware_kernel    processor / RAM gates + serial    │
-│    fsot_observer_serial    UART / boot markers               │
-│    fsot_obligation_replay  multiprover residual replay       │
-│                                                              │
-│  monorepo vendor/rust_lean_bridge   bootable observer kernel │
-│  monorepo verification/qemu         golden disk + BIOS       │
-│  monorepo vendor/trinary_os         Metatron ISA / .fsotb    │
-│                                                              │
-│  runners:                                                    │
-│    scripts/run_fsot_hardware_bare_metal.py                   │
-│    scripts/run_rust_lean_bridge_qemu_harness.py              │
-│    (this repo) scripts/run_hardware_spine.py                 │
-└──────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────┐
+│  FSOT REALITY OS KERNEL  (Rust no_std)                     │
+│  kernel/crates/reality_os_kernel                           │
+│    bootloader → VGA/UART → S → HW gates → domains → QEMU   │
+├────────────────────────────────────────────────────────────┤
+│  reality_os_scalar   S = K(T1+T2+T3)  pin D1D38A seeds     │
+│  reality_os_hw       collapse θ, trit pack, VRAM law       │
+├────────────────────────────────────────────────────────────┤
+│  Host formula shell (optional Python)                      │
+│  residual predict / CLI — never claims ring-0              │
+└────────────────────────────────────────────────────────────┘
 ```
 
-## Why sibling Reality OS was wrong before
+## v0.1 proved
 
-It was scaffolded as Python-first with “port Rust later.” That ignored the
-monorepo architecture you already had. Correct model:
+| Check | Result |
+|-------|--------|
+| `cargo build -p reality_os_kernel --release` | pass |
+| `cargo bootimage` | `bootimage-reality_os_kernel.bin` |
+| QEMU serial | `FSOT_ROS_OVERALL=ok` |
+| Boot scalar | matches canonical `0.0992889562686172` |
 
-| Layer | What it is |
-|-------|------------|
-| Shell | Python residual + pin |
-| Spine | Rust + QEMU (monorepo) |
-| ISA | Trinary OS bytecode |
+## Why this is an OS start (honest)
 
-## Commands
-
-```powershell
-# From monorepo
-python scripts/run_fsot_reality_os.py hardware          # inventory
-python scripts/run_fsot_reality_os.py hardware --run    # execute spine
-
-# From this sibling
-python scripts/run_hardware_spine.py
-```
-
-See [`hardware/README.md`](../hardware/README.md).
+v0.1 is a **bare-metal kernel binary** that owns boot, console, seed arithmetic,  
+hardware laws, and a domain process table. It is not Linux yet. It is not a  
+Python script. Next increments: allocator, full domain table, trinary ISA,  
+scheduler — still in Rust.
