@@ -84,14 +84,19 @@ source in this repository** and built/booted **here**, not via monorepo Python w
 
 Upstream atlas / multiprover: https://github.com/dappalumbo91/FSOT-2.1-Lean  
 
-## Roadmap (real OS, next) — FSOT-native only
+## Status checkpoint
 
-- [x] v0.1–v0.5 kernel (domains, heap, ready-queue, **IDT IRQ0**)  
-- [x] v0.6 **FSOTB suite**: hello + call_ret + spawn_join  
-- [x] Dual license **MIT OR Apache-2.0**  
-- [x] Policy: reference Ubuntu/Linux pathways; **no Linux code as product**  
-- [ ] Full wire IMM14 decode + execute CALL/SPAWN without oracle shortcuts  
-- [ ] Host plant (`fsot-pc-monitor`) as **dev telemetry fold**, not the kernel  
-- [ ] FSOT-native drivers / richer ABI (schematic from reference OSes, code ours)  
+**OS feature work paused** to prioritize **FSOT-2.1-Lean** (empirical residual gates + multiprover + Mathlib).  
+Frozen status + next OS steps: **[`docs/STATUS_AND_NEXT.md`](docs/STATUS_AND_NEXT.md)**.
+
+Practical loop = develop on **any host** (what we already do) · reference Linux only as a textbook · ship **our** FSOT kernel.
+
+## Roadmap (when OS resumes) — FSOT-native only
+
+- [x] v0.1–v0.6 kernel path (530 domains, heap, FSOTB suite, IDT IRQ0)  
+- [x] Dual license **MIT OR Apache-2.0** · reference-OS policy  
+- [ ] Full wire IMM14 decode for CALL/SPAWN  
+- [ ] Host plant (`fsot-pc-monitor`) as **dev telemetry**, not kernel  
+- [ ] FSOT-native drivers / richer ABI  
 
 See [`kernel/README.md`](kernel/README.md) · [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · [`docs/REFERENCE_OS_PATHWAYS.md`](docs/REFERENCE_OS_PATHWAYS.md).
