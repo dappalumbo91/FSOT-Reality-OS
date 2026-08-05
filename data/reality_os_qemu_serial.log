@@ -1,7 +1,7 @@
 ========================================
- FSOT REALITY OS v0.5  (Rust no_std)
+ FSOT REALITY OS v0.6  (Rust no_std)
  Fluid Spacetime Omni-Theory kernel
- pin=D1D38A  IDT IRQ0 + MIT/Apache-2.0
+ pin=D1D38A  FSOTB suite + IRQ0
 ========================================
 
 [1] Boot scalar KernelInit D_eff=8 observed
@@ -567,13 +567,15 @@
     heap_write_ok = 1
     mem_selftest = OK
 
-[5] Trinary ISA + hello.fsotb wire load
+[5] Trinary ISA + FSOTB suite (hello/call_ret/spawn_join)
     opcode_registry_0_26 = OK
     selftest_steps = 6  r0=7  emit_tag=42  evals=1
     trinary_selftest = OK
     residual_demo = OK
-    hello.fsotb magic=1 seeds=1 decode=1 run=1 tag=42
-    hello_fsotb = OK
+    hello     ok=1 tag=42 n=2
+    call_ret  ok=1 tag=7 n=10 ver=0x101
+    spawn_join ok=1 tag=99 n=31 ver=0x102
+    fsotb_suite programs_ok=3/3 = OK
 
 [6] IDT + IRQ0 (PIT) + ready-queue ALL domains
     idt_loaded = 1  pic_ok = 1  irq0_firings = 1
@@ -582,8 +584,8 @@
     irq0_selftest = OK
     sched_selftest = OK
 
-[7] Reality OS v0.5 boot complete — QEMU markers
-FSOT_ROS_VERSION=0.5
+[7] Reality OS v0.6 boot complete — QEMU markers
+FSOT_ROS_VERSION=0.6
 FSOT_ROS_PIN=D1D38A
 FSOT_QEMU_BOOT_SCALAR=0.09928895626861720
 FSOT_QEMU_CANONICAL=0.09928895626861720
@@ -602,6 +604,10 @@ FSOT_ROS_HEAP_BYTES=131072
 FSOT_ROS_TRINARY_OK=1
 FSOT_ROS_HELLO_FSOTB_OK=1
 FSOT_ROS_HELLO_TAG=42
+FSOT_ROS_CALL_RET_OK=1
+FSOT_ROS_SPAWN_JOIN_OK=1
+FSOT_ROS_FSOTB_SUITE_OK=1
+FSOT_ROS_FSOTB_PROGRAMS_OK=3
 FSOT_ROS_SCHED_OK=1
 FSOT_ROS_SCHED_TASKS=530
 FSOT_ROS_SCHED_QUANTA=1060

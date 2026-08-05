@@ -1,7 +1,8 @@
-//! FSOT Reality OS v0.5 — bare-metal kernel.
+//! FSOT Reality OS v0.6 — bare-metal kernel.
 //!
-//!   1–5. Scalar, HW, domains, heap, hello.fsotb
-//!   6. Ready-queue 530 domains + **IDT IRQ0** hardware timer preemption
+//!   1–4. Scalar, HW, domains, heap
+//!   5. FSOTB suite: hello + call_ret + spawn_join
+//!   6. Ready-queue 530 + IDT IRQ0
 //!   7. QEMU markers + halt
 //!
 //! SPDX-License-Identifier: MIT OR Apache-2.0
@@ -23,7 +24,7 @@ use reality_os_scalar::{
 };
 use reality_os_sched::boot_sched_selftest;
 use reality_os_trinary::{
-    opcode_registry_ok, residual_demo_ok, run_boot_selftest, run_hello_fsotb,
+    opcode_registry_ok, residual_demo_ok, run_boot_selftest, run_fsotb_suite,
 };
 
 entry_point!(kernel_main);
@@ -288,11 +289,11 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     };
 
     out.write_str("========================================\n");
-    out.write_str(" FSOT REALITY OS v0.5  (Rust no_std)\n");
+    out.write_str(" FSOT REALITY OS v0.6  (Rust no_std)\n");
     out.write_str(" Fluid Spacetime Omni-Theory kernel\n");
     out.write_str(" pin=");
     out.write_str(AUTHORITY_PIN);
-    out.write_str("  IDT IRQ0 + MIT/Apache-2.0\n");
+    out.write_str("  FSOTB suite + IRQ0\n");
     out.write_str("========================================\n\n");
 
     // --- Phase 1: boot scalar ---
@@ -416,12 +417,12 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     out.write_str("    mem_selftest = ");
     out.write_str(if mem_ok { "OK\n" } else { "FAIL\n" });
 
-    // --- Phase 5: trinary + real hello.fsotb ---
-    out.write_str("\n[5] Trinary ISA + hello.fsotb wire load\n");
+    // --- Phase 5: trinary + full FSOTB suite (hello, call_ret, spawn_join) ---
+    out.write_str("\n[5] Trinary ISA + FSOTB suite (hello/call_ret/spawn_join)\n");
     let reg_ok = opcode_registry_ok();
     let (tri_ok, tri_steps, tri_r0, tri_tag, tri_evals) = run_boot_selftest();
     let res_ok = residual_demo_ok();
-    let hello = run_hello_fsotb();
+    let suite = run_fsotb_suite();
     out.write_str("    opcode_registry_0_26 = ");
     out.write_str(if reg_ok { "OK\n" } else { "FAIL\n" });
     out.write_str("    selftest_steps = ");
@@ -436,18 +437,32 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     out.write_str(if tri_ok { "OK\n" } else { "FAIL\n" });
     out.write_str("    residual_demo = ");
     out.write_str(if res_ok { "OK\n" } else { "FAIL\n" });
-    out.write_str("    hello.fsotb magic=");
-    out.write_str(if hello.magic_ok { "1" } else { "0" });
-    out.write_str(" seeds=");
-    out.write_str(if hello.seeds_ok { "1" } else { "0" });
-    out.write_str(" decode=");
-    out.write_str(if hello.decode_ok { "1" } else { "0" });
-    out.write_str(" run=");
-    out.write_str(if hello.run_ok { "1" } else { "0" });
+    out.write_str("    hello     ok=");
+    out.write_str(if suite.hello.overall_ok { "1" } else { "0" });
     out.write_str(" tag=");
-    write_u32_out(&mut out, hello.emit_tag as u32);
-    out.write_str("\n    hello_fsotb = ");
-    out.write_str(if hello.overall_ok { "OK\n" } else { "FAIL\n" });
+    write_u32_out(&mut out, suite.hello.emit_tag as u32);
+    out.write_str(" n=");
+    write_u32_out(&mut out, suite.hello.n_instructions);
+    out.write_str("\n    call_ret  ok=");
+    out.write_str(if suite.call_ret.overall_ok { "1" } else { "0" });
+    out.write_str(" tag=");
+    write_u32_out(&mut out, suite.call_ret.emit_tag as u32);
+    out.write_str(" n=");
+    write_u32_out(&mut out, suite.call_ret.n_instructions);
+    out.write_str(" ver=0x");
+    write_u64_hex(&mut out, suite.call_ret.version as u64);
+    out.write_str("\n    spawn_join ok=");
+    out.write_str(if suite.spawn_join.overall_ok { "1" } else { "0" });
+    out.write_str(" tag=");
+    write_u32_out(&mut out, suite.spawn_join.emit_tag as u32);
+    out.write_str(" n=");
+    write_u32_out(&mut out, suite.spawn_join.n_instructions);
+    out.write_str(" ver=0x");
+    write_u64_hex(&mut out, suite.spawn_join.version as u64);
+    out.write_str("\n    fsotb_suite programs_ok=");
+    write_u32_out(&mut out, suite.programs_ok);
+    out.write_str("/3 = ");
+    out.write_str(if suite.overall_ok { "OK\n" } else { "FAIL\n" });
 
     // --- Phase 6: IDT IRQ0 + full ready-queue preemption ---
     out.write_str("\n[6] IDT + IRQ0 (PIT) + ready-queue ALL domains\n");
@@ -494,14 +509,14 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
         && mem_ok
         && tri_ok
         && reg_ok
-        && hello.overall_ok
+        && suite.overall_ok
         && sched_ok
         && irq_ok;
 
-    out.write_str("\n[7] Reality OS v0.5 boot complete — QEMU markers\n");
+    out.write_str("\n[7] Reality OS v0.6 boot complete — QEMU markers\n");
     drop(out);
 
-    serial.write_str("FSOT_ROS_VERSION=0.5\n");
+    serial.write_str("FSOT_ROS_VERSION=0.6\n");
     serial.write_str("FSOT_ROS_PIN=");
     serial.write_str(AUTHORITY_PIN);
     serial.write_str("\n");
@@ -549,10 +564,22 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     serial.write_str(if tri_ok && reg_ok { "1" } else { "0" });
     serial.write_str("\n");
     serial.write_str("FSOT_ROS_HELLO_FSOTB_OK=");
-    serial.write_str(if hello.overall_ok { "1" } else { "0" });
+    serial.write_str(if suite.hello.overall_ok { "1" } else { "0" });
     serial.write_str("\n");
     serial.write_str("FSOT_ROS_HELLO_TAG=");
-    serial.write_i32(hello.emit_tag);
+    serial.write_i32(suite.hello.emit_tag);
+    serial.write_str("\n");
+    serial.write_str("FSOT_ROS_CALL_RET_OK=");
+    serial.write_str(if suite.call_ret.overall_ok { "1" } else { "0" });
+    serial.write_str("\n");
+    serial.write_str("FSOT_ROS_SPAWN_JOIN_OK=");
+    serial.write_str(if suite.spawn_join.overall_ok { "1" } else { "0" });
+    serial.write_str("\n");
+    serial.write_str("FSOT_ROS_FSOTB_SUITE_OK=");
+    serial.write_str(if suite.overall_ok { "1" } else { "0" });
+    serial.write_str("\n");
+    serial.write_str("FSOT_ROS_FSOTB_PROGRAMS_OK=");
+    serial.write_i32(suite.programs_ok as i32);
     serial.write_str("\n");
     serial.write_str("FSOT_ROS_SCHED_OK=");
     serial.write_str(if sched_ok { "1" } else { "0" });

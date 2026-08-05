@@ -11,17 +11,17 @@
 > **Reference OS policy:** **Ubuntu / Linux show pathways** (boot, mem, sched, VFS, drivers…) so we know what a full OS must cover. We **do not use Linux code** as Reality OS — we **build our own through FSOT** (pin D1D38A, domain table, FSOTB, residual law). Details: [`docs/REFERENCE_OS_PATHWAYS.md`](docs/REFERENCE_OS_PATHWAYS.md).  
 > **License:** Reality OS is **MIT OR Apache-2.0**. Linux is **GPLv2-only**; studying it does not put this tree under GPL.
 
-## What actually boots (v0.5 — IDT IRQ0 + dual license)
+## What actually boots (v0.6 — FSOTB suite + IRQ0)
 
 ```text
 kernel/
   crates/reality_os_scalar    # S engine + FULL domain table (530)
   crates/reality_os_hw        # processor / RAM / trit-pack laws
-  crates/reality_os_trinary   # FSOTB ISA + embedded monorepo hello.fsotb
+  crates/reality_os_trinary   # FSOTB ISA + hello + call_ret + spawn_join
   crates/reality_os_mem       # map_physical_memory heap on frames
   crates/reality_os_sched     # ready-queue all 530 domains + tick preemption
   crates/reality_os_kernel    # bare-metal + IDT + PIC + IRQ0 + PIT
-  assets/hello.fsotb          # wire blob from FSOT-2.1-Lean vendor/trinary_os
+  assets/*.fsotb              # monorepo wire blobs (hello, call_ret, spawn_join)
 ```
 
 **Domain registry:** **530** covered interfaces (union of atlas `domain_interfaces` + all green residual margin domains + neurolab core) — **not** a 35-domain toy table.  
@@ -39,9 +39,9 @@ qemu-system-x86_64 -drive format=raw,file=target/x86_64-fsot-kernel/release/boot
 
 Or: `pwsh kernel/scripts/build_and_run.ps1`
 
-**Last verified boot (v0.5):**  
-`FSOT_ROS_OVERALL=ok` · `FSOT_ROS_IRQ0_OK=1` · IRQ0 firings ≥1 ·  
-`SCHED_TASKS=530` · heap/hello still green · license MIT OR Apache-2.0.  
+**Last verified boot (v0.6):**  
+`FSOT_ROS_OVERALL=ok` · **FSOTB suite 3/3** (hello + call_ret + spawn_join) ·  
+`IRQ0_OK` · `SCHED_TASKS=530`.  
 Artifacts: `data/reality_os_kernel.img`, `data/reality_os_qemu_serial.log`.
 
 ### Boot phases
@@ -50,8 +50,8 @@ Artifacts: `data/reality_os_kernel.img`, `data/reality_os_qemu_serial.log`.
 2. Hardware self-check  
 3. Full domain table walk (530) + registry dump  
 4. **`map_physical_memory` + heap** on allocated frames  
-5. **Trinary ISA + real `hello.fsotb`** wire load  
-6. **IDT + PIC remap + IRQ0 (PIT) + ready-queue 530 domains**  
+5. **FSOTB suite** — hello (tag 42) · call_ret (v1.1) · spawn_join (v1.2)  
+6. **IDT + IRQ0 + ready-queue 530 domains**  
 7. QEMU serial markers + halt  
 
 ## Layout
@@ -86,11 +86,12 @@ Upstream atlas / multiprover: https://github.com/dappalumbo91/FSOT-2.1-Lean
 
 ## Roadmap (real OS, next) — FSOT-native only
 
-- [x] v0.1–v0.5 kernel (domains, heap, hello.fsotb, ready-queue, **IDT IRQ0**)  
+- [x] v0.1–v0.5 kernel (domains, heap, ready-queue, **IDT IRQ0**)  
+- [x] v0.6 **FSOTB suite**: hello + call_ret + spawn_join  
 - [x] Dual license **MIT OR Apache-2.0**  
 - [x] Policy: reference Ubuntu/Linux pathways; **no Linux code as product**  
-- [ ] More FSOTB programs (call_ret / spawn_join)  
+- [ ] Full wire IMM14 decode + execute CALL/SPAWN without oracle shortcuts  
 - [ ] Host plant (`fsot-pc-monitor`) as **dev telemetry fold**, not the kernel  
-- [ ] FSOT-native drivers / richer ABI (informed by reference OS schematics, written by us)  
+- [ ] FSOT-native drivers / richer ABI (schematic from reference OSes, code ours)  
 
 See [`kernel/README.md`](kernel/README.md) · [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · [`docs/REFERENCE_OS_PATHWAYS.md`](docs/REFERENCE_OS_PATHWAYS.md).

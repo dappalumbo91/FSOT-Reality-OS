@@ -10,9 +10,11 @@
 #![no_std]
 
 mod hello_fsotb_bytes;
+mod call_ret_fsotb_bytes;
+mod spawn_join_fsotb_bytes;
 pub mod fsotb;
 
-pub use fsotb::{run_hello_fsotb, FsotbLoadReport};
+pub use fsotb::{run_fsotb_suite, run_hello_fsotb, FsotbLoadReport, FsotbSuiteReport};
 
 use reality_os_scalar::{compute_s, residual_predict, sign_trit, DOMAIN_TABLE};
 
@@ -164,6 +166,10 @@ impl Vm {
         self.regs[i] = v;
     }
 
+    pub fn set_reg_pub(&mut self, i: u8, v: i32) {
+        self.set_reg(i, v);
+    }
+
     fn push(&mut self, v: i32) -> bool {
         if self.sp >= STACK_DEPTH {
             return false;
@@ -171,6 +177,10 @@ impl Vm {
         self.stack[self.sp] = v;
         self.sp += 1;
         true
+    }
+
+    pub fn push_pub(&mut self, v: i32) -> bool {
+        self.push(v)
     }
 
     fn pop(&mut self) -> Option<i32> {

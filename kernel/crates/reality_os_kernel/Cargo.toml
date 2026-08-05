@@ -1,9 +1,9 @@
 [package]
 name = "reality_os_kernel"
-version = "0.5.0"
+version = "0.6.0"
 edition = "2021"
 authors = ["Damian Arthur Palumbo <dappalumbo91>"]
-description = "FSOT Reality OS v0.5 — IDT IRQ0 preemption + dual MIT/Apache-2.0"
+description = "FSOT Reality OS v0.6 — FSOTB suite hello/call_ret/spawn_join + IRQ0"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/dappalumbo91/FSOT-Reality-OS"
 
