@@ -1,32 +1,22 @@
 {
-  "generated_at": "2026-08-06T00:15:00+00:00",
+  "generated_at": "2026-08-06T00:45:00+00:00",
   "os": "FSOT Reality OS",
-  "version": "0.3",
+  "version": "0.4",
   "language": "Rust no_std",
   "pin": "D1D38A",
   "overall_ok": true,
   "phases": {
-    "boot_scalar": true,
-    "hardware": true,
     "domains": 530,
     "residual_finite": 530,
-    "mem_ok": true,
-    "usable_frames": 32327,
-    "allocated_frames": 20,
-    "trinary_ok": true,
-    "trinary_steps": 6,
-    "trinary_r0": 7,
-    "trinary_emit_tag": 42,
-    "sched_ok": true,
-    "sched_quanta": 64,
-    "sched_tasks": 32
-  },
-  "crates": [
-    "reality_os_scalar",
-    "reality_os_hw",
-    "reality_os_trinary",
-    "reality_os_mem",
-    "reality_os_sched",
-    "reality_os_kernel"
-  ]
+    "phys_offset_hex": "0x18000000000",
+    "heap_ok": true,
+    "heap_bytes": 131072,
+    "heap_used": 64,
+    "hello_fsotb_ok": true,
+    "hello_tag": 42,
+    "sched_tasks": 530,
+    "sched_quanta": 1060,
+    "sched_preempts": 1060,
+    "pit_ticks": 32
+  }
 }

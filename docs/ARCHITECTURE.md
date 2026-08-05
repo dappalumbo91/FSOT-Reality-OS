@@ -20,12 +20,12 @@
 └──────────────────────────────────────────────────────────────┘
 ```
 
-## v0.3 proved (QEMU)
+## v0.4 proved (QEMU)
 
 | Check | Result |
 |-------|--------|
 | Domains walked | **530** residual_finite=530 |
-| Memory | usable_frames≈32k, allocated=20, mem_ok |
-| Trinary | registry 0–26, selftest r0=7 emit=42 |
-| Scheduler | 32 tasks, 64 quanta, sched_ok |
-| Overall | `FSOT_ROS_OVERALL=ok` |
+| Heap | `map_physical_memory` phys_offset set, heap 128 KiB write/read **OK** |
+| hello.fsotb | magic/seeds/decode/run **OK**, tag=42, panel S oracle bits |
+| Scheduler | **530** tasks ready-queue, 1060 quanta, **1060 preempts** |
+| Overall | `FSOT_ROS_VERSION=0.4` · `FSOT_ROS_OVERALL=ok` |

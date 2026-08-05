@@ -9,6 +9,11 @@
 
 #![no_std]
 
+mod hello_fsotb_bytes;
+pub mod fsotb;
+
+pub use fsotb::{run_hello_fsotb, FsotbLoadReport};
+
 use reality_os_scalar::{compute_s, residual_predict, sign_trit, DOMAIN_TABLE};
 
 /// Word width in trits (ABI).
@@ -239,17 +244,14 @@ impl Vm {
                 self.set_reg(ins.a, sign_trit(v) as i32);
             }
             Op::EvalPanel => {
-                // imm = domain index into DOMAIN_TABLE; write scaled S*1e6 into reg a
-                let idx = if ins.imm < 0 {
-                    0usize
-                } else {
-                    (ins.imm as usize) % DOMAIN_TABLE.len()
-                };
+                // Wire: rd=a, panel=b, tag=imm (hello.fsotb). Domain table panel index = b.
+                let idx = (ins.b as usize) % DOMAIN_TABLE.len().max(1);
                 let d = &DOMAIN_TABLE[idx];
                 let s = compute_s(d.d_eff, d.delta_psi, d.observed, d.hits);
                 let scaled = (s * 1_000_000.0) as i32;
                 self.set_reg(ins.a, scaled);
                 self.last_emit_s_bits = s.to_bits();
+                self.last_emit_tag = ins.imm;
                 self.eval_count += 1;
             }
             Op::Consensus => {
