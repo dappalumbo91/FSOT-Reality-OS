@@ -1,7 +1,7 @@
 ========================================
- FSOT REALITY OS v0.4  (Rust no_std)
+ FSOT REALITY OS v0.5  (Rust no_std)
  Fluid Spacetime Omni-Theory kernel
- pin=D1D38A  heap+fsotb+preempt
+ pin=D1D38A  IDT IRQ0 + MIT/Apache-2.0
 ========================================
 
 [1] Boot scalar KernelInit D_eff=8 observed
@@ -561,7 +561,7 @@
 [4] map_physical_memory + heap on frames
     phys_offset = 0x18000000000
     regions = 16  usable_regions = 2
-    usable_frames = 31296  allocated = 48
+    usable_frames = 31293  allocated = 48
     first_frame = 376
     heap_bytes = 131072  heap_used = 64
     heap_write_ok = 1
@@ -575,13 +575,15 @@
     hello.fsotb magic=1 seeds=1 decode=1 run=1 tag=42
     hello_fsotb = OK
 
-[6] Ready-queue ALL domains + PIT timer preemption
+[6] IDT + IRQ0 (PIT) + ready-queue ALL domains
+    idt_loaded = 1  pic_ok = 1  irq0_firings = 1
     tasks = 530  quanta_run = 1060  switches = 2120
-    preempts = 1060  pit_ticks = 32
+    preempts = 1060  soft_ticks = 4  irq0_total = 4
+    irq0_selftest = OK
     sched_selftest = OK
 
-[7] Reality OS v0.4 boot complete — QEMU markers
-FSOT_ROS_VERSION=0.4
+[7] Reality OS v0.5 boot complete — QEMU markers
+FSOT_ROS_VERSION=0.5
 FSOT_ROS_PIN=D1D38A
 FSOT_QEMU_BOOT_SCALAR=0.09928895626861720
 FSOT_QEMU_CANONICAL=0.09928895626861720
@@ -594,7 +596,7 @@ FSOT_ROS_RESIDUAL_FINITE=530
 FSOT_ROS_DOMAIN_TABLE_OK=1
 FSOT_ROS_MEM_OK=1
 FSOT_ROS_HEAP_OK=1
-FSOT_ROS_MEM_USABLE_FRAMES=31296
+FSOT_ROS_MEM_USABLE_FRAMES=31293
 FSOT_ROS_MEM_ALLOCATED=48
 FSOT_ROS_HEAP_BYTES=131072
 FSOT_ROS_TRINARY_OK=1
@@ -604,6 +606,9 @@ FSOT_ROS_SCHED_OK=1
 FSOT_ROS_SCHED_TASKS=530
 FSOT_ROS_SCHED_QUANTA=1060
 FSOT_ROS_SCHED_PREEMPTS=1060
-FSOT_ROS_PIT_TICKS=32
+FSOT_ROS_PIT_TICKS=4
+FSOT_ROS_IRQ0_OK=1
+FSOT_ROS_IRQ0_COUNT=4
+FSOT_ROS_LICENSE=MIT_OR_Apache-2.0
 FSOT_ROS_OVERALL=ok
 FSOT_QEMU_HW_OVERALL=ok

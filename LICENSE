@@ -1,0 +1,25 @@
+FSOT Reality OS is dual-licensed under **MIT OR Apache-2.0**.
+
+You may use this project under the terms of either:
+
+- the MIT License — see `LICENSE-MIT`
+- the Apache License, Version 2.0 — see `LICENSE-APACHE`
+
+Unless you explicitly state otherwise, any contribution intentionally submitted
+for inclusion in this project shall be dual-licensed as above, without any
+additional terms or conditions.
+
+---
+
+## Note on Linux
+
+The **Linux kernel** is licensed under **GPLv2 only** (not MIT, not Apache-2.0).
+That is a different license family (copyleft).
+
+FSOT Reality OS intentionally uses the **MIT OR Apache-2.0** dual license common
+in the Rust ecosystem so the kernel crates, host tools, and documentation can be
+combined with most permissive and many dual-licensed dependencies without forcing
+GPLv2 on downstream users.
+
+If a future Linux-kernel module or out-of-tree driver is published under GPLv2
+to match Linux, that component will carry its own explicit GPLv2 notice.

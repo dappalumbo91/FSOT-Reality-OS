@@ -3,11 +3,14 @@
 **A real operating system kernel in Rust (`no_std`), booted under QEMU.**  
 **Python is not the OS.** Python residual CLI is a formula shell only.
 
-| Pin | Master formula |
-|-----|----------------|
-| **D1D38A** | \(S = K(T_1+T_2+T_3)\) · \(c = m\,(1+\|S\|\,f)\) |
+| | |
+|--|--|
+| **Pin** | **D1D38A** · \(S = K(T_1+T_2+T_3)\) · \(c = m\,(1+\|S\|\,f)\) |
+| **License** | **MIT OR Apache-2.0** — [`LICENSE`](LICENSE) · [`LICENSE-MIT`](LICENSE-MIT) · [`LICENSE-APACHE`](LICENSE-APACHE) |
 
-## What actually boots (v0.4 — heap + hello.fsotb + full preemptive queue)
+> **Linux note:** The Linux kernel is **GPLv2-only**. Reality OS is **not** GPLv2; it uses the dual **MIT OR Apache-2.0** license (Rust-ecosystem standard). A future Linux-module package, if any, would carry its own GPLv2 notice.
+
+## What actually boots (v0.5 — IDT IRQ0 + dual license)
 
 ```text
 kernel/
@@ -16,7 +19,7 @@ kernel/
   crates/reality_os_trinary   # FSOTB ISA + embedded monorepo hello.fsotb
   crates/reality_os_mem       # map_physical_memory heap on frames
   crates/reality_os_sched     # ready-queue all 530 domains + tick preemption
-  crates/reality_os_kernel    # bare-metal + PIT timer
+  crates/reality_os_kernel    # bare-metal + IDT + PIC + IRQ0 + PIT
   assets/hello.fsotb          # wire blob from FSOT-2.1-Lean vendor/trinary_os
 ```
 
@@ -35,9 +38,9 @@ qemu-system-x86_64 -drive format=raw,file=target/x86_64-fsot-kernel/release/boot
 
 Or: `pwsh kernel/scripts/build_and_run.ps1`
 
-**Last verified boot (v0.4):**  
-`FSOT_ROS_OVERALL=ok` · `HEAP_OK` · `HELLO_FSOTB_OK` tag=42 ·  
-`SCHED_TASKS=530` · preempts=1060 · quanta=1060.  
+**Last verified boot (v0.5):**  
+`FSOT_ROS_OVERALL=ok` · `FSOT_ROS_IRQ0_OK=1` · IRQ0 firings ≥1 ·  
+`SCHED_TASKS=530` · heap/hello still green · license MIT OR Apache-2.0.  
 Artifacts: `data/reality_os_kernel.img`, `data/reality_os_qemu_serial.log`.
 
 ### Boot phases
@@ -45,9 +48,9 @@ Artifacts: `data/reality_os_kernel.img`, `data/reality_os_qemu_serial.log`.
 1. Console + boot scalar `KernelInit`  
 2. Hardware self-check  
 3. Full domain table walk (530) + registry dump  
-4. **`map_physical_memory` + heap** on allocated frames (write/readback)  
-5. **Trinary ISA + real `hello.fsotb`** wire load (magic/seeds/decode/run)  
-6. **Ready-queue all 530 domains + PIT timer preemption**  
+4. **`map_physical_memory` + heap** on allocated frames  
+5. **Trinary ISA + real `hello.fsotb`** wire load  
+6. **IDT + PIC remap + IRQ0 (PIT) + ready-queue 530 domains**  
 7. QEMU serial markers + halt  
 
 ## Layout
@@ -82,13 +85,11 @@ Upstream atlas / multiprover: https://github.com/dappalumbo91/FSOT-2.1-Lean
 
 ## Roadmap (real OS, next)
 
-- [x] v0.1 bare-metal kernel + QEMU boot  
-- [x] v0.2 full covered domain table (530)  
-- [x] v0.3 trinary ISA + frame allocator + cooperative scheduler  
-- [x] v0.4 `map_physical_memory` heap + `hello.fsotb` + 530 ready-queue + PIT preemption  
-- [ ] IDT IRQ0 path (hardware interrupt preemption vs PIT poll)  
+- [x] v0.1–v0.4 kernel path (domains, heap, hello.fsotb, ready-queue)  
+- [x] v0.5 **IDT + PIC + IRQ0** hardware timer path  
+- [x] **MIT OR Apache-2.0** dual license (repo root)  
 - [ ] Load call_ret / spawn_join FSOTB oracles  
 - [ ] Host plant: integrate `fsot-pc-monitor` under `host/`  
-- [ ] Optional: Linux userspace policy plane  
+- [ ] Optional: Linux userspace policy plane (any Linux-module piece would be GPLv2-noted)  
 
 See [`kernel/README.md`](kernel/README.md) · [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).

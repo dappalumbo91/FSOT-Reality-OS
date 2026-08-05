@@ -1,22 +1,19 @@
 {
-  "generated_at": "2026-08-06T00:45:00+00:00",
+  "generated_at": "2026-08-06T01:10:00+00:00",
   "os": "FSOT Reality OS",
-  "version": "0.4",
+  "version": "0.5",
   "language": "Rust no_std",
   "pin": "D1D38A",
+  "license": "MIT OR Apache-2.0",
   "overall_ok": true,
   "phases": {
     "domains": 530,
-    "residual_finite": 530,
-    "phys_offset_hex": "0x18000000000",
     "heap_ok": true,
-    "heap_bytes": 131072,
-    "heap_used": 64,
     "hello_fsotb_ok": true,
-    "hello_tag": 42,
     "sched_tasks": 530,
-    "sched_quanta": 1060,
-    "sched_preempts": 1060,
-    "pit_ticks": 32
+    "idt_loaded": true,
+    "pic_ok": true,
+    "irq0_ok": true,
+    "irq0_count": 4
   }
 }

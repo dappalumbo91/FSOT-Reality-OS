@@ -1,16 +1,16 @@
-//! FSOT Reality OS v0.4 — bare-metal kernel.
+//! FSOT Reality OS v0.5 — bare-metal kernel.
 //!
-//!   1. Console + boot scalar
-//!   2. Hardware self-check
-//!   3. Full domain table walk (530)
-//!   4. map_physical_memory heap on frames
-//!   5. Trinary ISA + real hello.fsotb wire load
-//!   6. Ready-queue all domains + PIT timer preemption
+//!   1–5. Scalar, HW, domains, heap, hello.fsotb
+//!   6. Ready-queue 530 domains + **IDT IRQ0** hardware timer preemption
 //!   7. QEMU markers + halt
+//!
+//! SPDX-License-Identifier: MIT OR Apache-2.0
 
 #![no_std]
 #![no_main]
+#![feature(abi_x86_interrupt)]
 
+mod interrupts;
 mod timer;
 
 use bootloader::{entry_point, BootInfo};
@@ -288,11 +288,11 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     };
 
     out.write_str("========================================\n");
-    out.write_str(" FSOT REALITY OS v0.4  (Rust no_std)\n");
+    out.write_str(" FSOT REALITY OS v0.5  (Rust no_std)\n");
     out.write_str(" Fluid Spacetime Omni-Theory kernel\n");
     out.write_str(" pin=");
     out.write_str(AUTHORITY_PIN);
-    out.write_str("  heap+fsotb+preempt\n");
+    out.write_str("  IDT IRQ0 + MIT/Apache-2.0\n");
     out.write_str("========================================\n\n");
 
     // --- Phase 1: boot scalar ---
@@ -449,16 +449,28 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     out.write_str("\n    hello_fsotb = ");
     out.write_str(if hello.overall_ok { "OK\n" } else { "FAIL\n" });
 
-    // --- Phase 6: full ready-queue + timer preemption ---
-    out.write_str("\n[6] Ready-queue ALL domains + PIT timer preemption\n");
-    timer::init_pit_100hz();
-    // burn a few PIT polls so tick counter moves
-    let mut t = 0u32;
-    while t < 32 {
-        timer::pit_poll_tick();
-        t += 1;
-    }
+    // --- Phase 6: IDT IRQ0 + full ready-queue preemption ---
+    out.write_str("\n[6] IDT + IRQ0 (PIT) + ready-queue ALL domains\n");
+    let (idt_ok, pic_ok, irq0_seen) = interrupts::boot_irq0_selftest();
+    out.write_str("    idt_loaded = ");
+    out.write_str(if idt_ok { "1" } else { "0" });
+    out.write_str("  pic_ok = ");
+    out.write_str(if pic_ok { "1" } else { "0" });
+    out.write_str("  irq0_firings = ");
+    write_u64_out(&mut out, irq0_seen);
+    out.write_str("\n");
+
+    // While IRQs fire, run full-domain scheduler (preemption uses tick counter)
     let (sched_ok, sched_tasks, sched_ran, sched_sw, preempts) = boot_sched_selftest();
+    // allow more IRQ0 during/after sched
+    let mut wait = 0u32;
+    let irq_before = interrupts::irq0_count();
+    while interrupts::irq0_count() < irq_before + 3 && wait < 80_000_000 {
+        core::hint::spin_loop();
+        wait += 1;
+    }
+    let irq0_total = interrupts::irq0_count();
+
     out.write_str("    tasks = ");
     write_u32_out(&mut out, sched_tasks);
     out.write_str("  quanta_run = ");
@@ -467,9 +479,14 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     write_u32_out(&mut out, sched_sw);
     out.write_str("\n    preempts = ");
     write_u32_out(&mut out, preempts);
-    out.write_str("  pit_ticks = ");
+    out.write_str("  soft_ticks = ");
     write_u64_out(&mut out, timer::ticks());
-    out.write_str("\n    sched_selftest = ");
+    out.write_str("  irq0_total = ");
+    write_u64_out(&mut out, irq0_total);
+    out.write_str("\n    irq0_selftest = ");
+    let irq_ok = idt_ok && pic_ok && irq0_seen > 0;
+    out.write_str(if irq_ok { "OK\n" } else { "FAIL\n" });
+    out.write_str("    sched_selftest = ");
     out.write_str(if sched_ok { "OK\n" } else { "FAIL\n" });
 
     let overall = domains_ok
@@ -478,12 +495,13 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
         && tri_ok
         && reg_ok
         && hello.overall_ok
-        && sched_ok;
+        && sched_ok
+        && irq_ok;
 
-    out.write_str("\n[7] Reality OS v0.4 boot complete — QEMU markers\n");
+    out.write_str("\n[7] Reality OS v0.5 boot complete — QEMU markers\n");
     drop(out);
 
-    serial.write_str("FSOT_ROS_VERSION=0.4\n");
+    serial.write_str("FSOT_ROS_VERSION=0.5\n");
     serial.write_str("FSOT_ROS_PIN=");
     serial.write_str(AUTHORITY_PIN);
     serial.write_str("\n");
@@ -551,6 +569,13 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     serial.write_str("FSOT_ROS_PIT_TICKS=");
     serial.write_i32(timer::ticks() as i32);
     serial.write_str("\n");
+    serial.write_str("FSOT_ROS_IRQ0_OK=");
+    serial.write_str(if irq_ok { "1" } else { "0" });
+    serial.write_str("\n");
+    serial.write_str("FSOT_ROS_IRQ0_COUNT=");
+    serial.write_i32(irq0_total as i32);
+    serial.write_str("\n");
+    serial.write_str("FSOT_ROS_LICENSE=MIT_OR_Apache-2.0\n");
     serial.write_str(if overall {
         "FSOT_ROS_OVERALL=ok\n"
     } else {
