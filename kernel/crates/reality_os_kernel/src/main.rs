@@ -17,7 +17,7 @@ use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
 use reality_os_hw::boot_hardware_self_check;
 use reality_os_scalar::{
-    boot_scalar, compute_s, residual_predict, sign_trit, AUTHORITY_PIN, BOOT_SCALAR_CANONICAL,
+    boot_scalar, sign_trit, walk_all_domains, AUTHORITY_PIN, BOOT_SCALAR_CANONICAL, DOMAIN_COUNT,
     DOMAIN_TABLE,
 };
 
@@ -204,6 +204,26 @@ fn write_f64(w: &mut impl ByteSink, val: f64, precision: usize) {
     }
 }
 
+fn write_u32_out(out: &mut Consoles<'_>, n: u32) {
+    let mut buf = [0u8; 10];
+    let mut i = 0;
+    let mut t = n;
+    if t == 0 {
+        out.write_str("0");
+        return;
+    }
+    while t > 0 {
+        buf[i] = b'0' + (t % 10) as u8;
+        t /= 10;
+        i += 1;
+    }
+    while i > 0 {
+        i -= 1;
+        let b = [buf[i]];
+        out.write_str(core::str::from_utf8(&b).unwrap_or("?"));
+    }
+}
+
 struct Consoles<'a> {
     vga: &'a mut VgaWriter,
     serial: &'a mut SerialWriter,
@@ -239,12 +259,12 @@ fn kernel_main(_boot_info: &'static BootInfo) -> ! {
     };
 
     out.write_str("========================================\n");
-    out.write_str(" FSOT REALITY OS v0.1  (Rust no_std)\n");
+    out.write_str(" FSOT REALITY OS v0.2  (Rust no_std)\n");
     out.write_str(" Fluid Spacetime Omni-Theory kernel\n");
     out.write_str(" pin=");
     out.write_str(AUTHORITY_PIN);
     out.write_str("  S=K(T1+T2+T3)\n");
-    out.write_str(" c=m(1+|S|*f)  ZERO free parameters\n");
+    out.write_str(" c=m(1+|S|*f)  FULL domain table\n");
     out.write_str("========================================\n\n");
 
     // --- Phase 1: boot scalar ---
@@ -284,52 +304,69 @@ fn kernel_main(_boot_info: &'static BootInfo) -> ! {
         "    hardware_overall = FAIL\n"
     });
 
-    // --- Phase 3: domain process table (first OS service) ---
-    out.write_str("\n[3] Domain interface table (core subset)\n");
-    let mut domain_ok = 0u32;
-    for d in DOMAIN_TABLE {
-        let s = compute_s(d.d_eff, 0.7, true, 0.0);
-        let c = residual_predict(1.0, s, d.factor);
+    // --- Phase 3: FULL domain table (every covered domain, not a subset) ---
+    out.write_str("\n[3] Full domain interface table (ALL covered domains)\n");
+    out.write_str("    DOMAIN_COUNT compile-time = ");
+    write_u32_out(&mut out, DOMAIN_COUNT as u32);
+    out.write_str("\n    table_len runtime = ");
+    write_u32_out(&mut out, DOMAIN_TABLE.len() as u32);
+    out.write_str("\n");
+
+    // Walk every domain: compute S + residual for all
+    let walk = walk_all_domains();
+    out.write_str("    walked_total = ");
+    write_u32_out(&mut out, walk.total);
+    out.write_str("\n    walked_core = ");
+    write_u32_out(&mut out, walk.core);
+    out.write_str("\n    walked_extension = ");
+    write_u32_out(&mut out, walk.extension);
+    out.write_str("\n    walked_other = ");
+    write_u32_out(&mut out, walk.other);
+    out.write_str("\n    sign_emerge = ");
+    write_u32_out(&mut out, walk.emerge);
+    out.write_str("  damp = ");
+    write_u32_out(&mut out, walk.damp);
+    out.write_str("  zero = ");
+    write_u32_out(&mut out, walk.zero);
+    out.write_str("\n    residual_finite = ");
+    write_u32_out(&mut out, walk.residual_finite);
+    out.write_str("\n    mean_abs_S = ");
+    let mean_abs = if walk.total > 0 {
+        walk.s_sum_abs / (walk.total as f64)
+    } else {
+        0.0
+    };
+    out.write_f64(mean_abs, 8);
+    out.write_str("\n");
+
+    // Emit every domain name + D_eff + kind (compact registry dump)
+    out.write_str("    --- domain registry dump ---\n");
+    let mut i = 0usize;
+    while i < DOMAIN_TABLE.len() {
+        let d = &DOMAIN_TABLE[i];
         out.write_str("    ");
+        write_u32_out(&mut out, i as u32);
+        out.write_str(" ");
+        out.write_str(d.kind);
+        out.write_str(" ");
         out.write_str(d.name);
         out.write_str(" D=");
         out.write_f64(d.d_eff, 1);
-        out.write_str(" S=");
-        out.write_f64(s, 6);
-        out.write_str(" c(m=1)=");
-        out.write_f64(c, 6);
+        out.write_str(" f=");
+        out.write_f64(d.factor, 6);
         out.write_str("\n");
-        domain_ok += 1;
+        i += 1;
     }
-    out.write_str("    domains_walked = ");
-    // write domain_ok
-    {
-        let n = domain_ok;
-        let mut buf = [0u8; 8];
-        let mut i = 0;
-        let mut t = n;
-        if t == 0 {
-            out.write_str("0");
-        } else {
-            while t > 0 {
-                buf[i] = b'0' + (t % 10) as u8;
-                t /= 10;
-                i += 1;
-            }
-            while i > 0 {
-                i -= 1;
-                let b = [buf[i]];
-                out.write_str(core::str::from_utf8(&b).unwrap_or("?"));
-            }
-        }
-    }
-    out.write_str("\n");
 
-    out.write_str("\n[4] Reality OS v0.1 boot complete — serial markers for QEMU\n");
+    let domains_ok = walk.total == DOMAIN_COUNT as u32
+        && walk.residual_finite == walk.total
+        && walk.total > 100;
+
+    out.write_str("\n[4] Reality OS v0.2 full-domain boot complete — QEMU markers\n");
     drop(out);
 
     // Machine-parseable markers (harness)
-    serial.write_str("FSOT_ROS_VERSION=0.1\n");
+    serial.write_str("FSOT_ROS_VERSION=0.2\n");
     serial.write_str("FSOT_ROS_PIN=");
     serial.write_str(AUTHORITY_PIN);
     serial.write_str("\n");
@@ -344,9 +381,25 @@ fn kernel_main(_boot_info: &'static BootInfo) -> ! {
     serial.write_str(if hw.overall_ok { "1" } else { "0" });
     serial.write_str("\n");
     serial.write_str("FSOT_ROS_DOMAINS=");
-    serial.write_i32(domain_ok as i32);
+    serial.write_i32(walk.total as i32);
     serial.write_str("\n");
-    serial.write_str("FSOT_ROS_OVERALL=ok\n");
+    serial.write_str("FSOT_ROS_DOMAINS_CORE=");
+    serial.write_i32(walk.core as i32);
+    serial.write_str("\n");
+    serial.write_str("FSOT_ROS_DOMAINS_EXT=");
+    serial.write_i32(walk.extension as i32);
+    serial.write_str("\n");
+    serial.write_str("FSOT_ROS_RESIDUAL_FINITE=");
+    serial.write_i32(walk.residual_finite as i32);
+    serial.write_str("\n");
+    serial.write_str("FSOT_ROS_DOMAIN_TABLE_OK=");
+    serial.write_str(if domains_ok { "1" } else { "0" });
+    serial.write_str("\n");
+    serial.write_str(if domains_ok && hw.overall_ok {
+        "FSOT_ROS_OVERALL=ok\n"
+    } else {
+        "FSOT_ROS_OVERALL=fail\n"
+    });
     serial.write_str("FSOT_QEMU_HW_OVERALL=ok\n");
 
     // isa-debug-exit success code for bootimage test harness

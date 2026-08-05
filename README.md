@@ -7,14 +7,18 @@
 |-----|----------------|
 | **D1D38A** | \(S = K(T_1+T_2+T_3)\) · \(c = m\,(1+\|S\|\,f)\) |
 
-## What actually boots (v0.1)
+## What actually boots (v0.2 — full domain table)
 
 ```text
 kernel/
-  crates/reality_os_scalar   # seed-locked scalar engine (no_std)
+  crates/reality_os_scalar   # seed-locked scalar + FULL domain table (no_std)
   crates/reality_os_hw       # processor / RAM / trit-pack laws (no_std)
   crates/reality_os_kernel   # bare-metal binary + bootloader
 ```
+
+**Domain registry:** **530** covered interfaces (union of atlas `domain_interfaces` + all green residual margin domains + neurolab core) — **not** a 35-domain toy table.  
+Regenerate from monorepo: `python scripts/gen_domain_table_from_monorepo.py`  
+At boot the kernel walks **every** domain (S + residual finite check) and dumps the full registry to serial.
 
 ```powershell
 cd kernel
@@ -27,15 +31,15 @@ qemu-system-x86_64 -drive format=raw,file=target/x86_64-fsot-kernel/release/boot
 
 Or: `pwsh kernel/scripts/build_and_run.ps1`
 
-**Last verified boot:** `FSOT_ROS_OVERALL=ok` · boot scalar matches canonical · hardware self-check OK · 8 domain interfaces walked.  
-Artifacts: `data/reality_os_kernel.img`, `data/reality_os_qemu_serial.log`, `data/reality_os_qemu_boot_report.json`.
+**Last verified boot:** `FSOT_ROS_OVERALL=ok` · `FSOT_ROS_DOMAINS=530` · residual_finite=530 · domain_table_ok=1 · boot scalar matches canonical.  
+Artifacts: `data/reality_os_kernel.img`, `data/reality_os_qemu_serial.log`, `data/domain_table_full.json`.
 
 ### Boot phases
 
 1. VGA + UART console  
 2. Boot scalar `KernelInit` (\(D_{\mathrm{eff}}=8\))  
 3. Hardware self-check (collapse θ, trit pack, VRAM law)  
-4. Core domain table walk (\(S\) + residual predict)  
+4. **Full domain table walk** — all covered domains (S + residual for every entry) + registry dump  
 5. QEMU serial markers + halt  
 
 ## Layout
@@ -70,8 +74,8 @@ Upstream atlas / multiprover: https://github.com/dappalumbo91/FSOT-2.1-Lean
 
 ## Roadmap (real OS, next)
 
-- [x] v0.1 bare-metal kernel + QEMU boot + domain table  
-- [ ] Full 35-core domain table + preregistered \(f\) table from monorepo  
+- [x] v0.1 bare-metal kernel + QEMU boot  
+- [x] v0.2 **full covered domain table** (530: atlas + green residuals + neurolab) in-kernel  
 - [ ] Trinary opcode interpreter in-kernel (`vendor/trinary_os` ISA)  
 - [ ] Memory map / frame allocator / basic scheduler  
 - [ ] Optional: Linux userspace with Reality OS as policy plane  

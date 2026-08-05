@@ -1,10 +1,16 @@
 //! FSOT Reality OS scalar engine — `no_std`.
 //!
 //! Master formula: `S = K * (T1 + T2 + T3)`
-//! Residual law (host): `c = m * (1 + |S| * f)` with preregistered `f`.
-//! Seeds match pin **D1D38A** authority (`fsot_compute` / monorepo scalar kernel).
+//! Residual law: `c = m * (1 + |S| * f)` with preregistered `f`.
+//! Seeds match pin **D1D38A**.
+//!
+//! Domain table: **full coverage** in `domains.rs` (all atlas + green residual domains).
 
 #![no_std]
+
+pub mod domains;
+
+pub use domains::{count_by_kind, DomainIface, DOMAIN_COUNT, DOMAIN_TABLE};
 
 use libm::{cos, exp, log, sin, sqrt};
 
@@ -37,59 +43,6 @@ pub const BOOT_SCALAR_CANONICAL: f64 = 0.09928895626861721;
 
 const GAMMA_EULER: f64 = 0.5772156649;
 const PHI: f64 = 1.6180339887;
-
-/// Core domain interface entry: name + D_eff (first 8 of 35 for early boot table).
-#[derive(Clone, Copy)]
-pub struct DomainIface {
-    pub name: &'static str,
-    pub d_eff: f64,
-    /// Preregistered residual factor f (not free-fit).
-    pub factor: f64,
-}
-
-/// Seed domain table carried in the kernel (subset; full 35 expand later).
-pub const DOMAIN_TABLE: &[DomainIface] = &[
-    DomainIface {
-        name: "Particle_Physics",
-        d_eff: 12.0,
-        factor: 0.05,
-    },
-    DomainIface {
-        name: "Quantum_Mechanics",
-        d_eff: 6.0,
-        factor: 0.05,
-    },
-    DomainIface {
-        name: "Cosmology",
-        d_eff: 20.0,
-        factor: 0.05,
-    },
-    DomainIface {
-        name: "Planetary_Science",
-        d_eff: 14.0,
-        factor: 0.05,
-    },
-    DomainIface {
-        name: "Biology",
-        d_eff: 16.0,
-        factor: 0.05,
-    },
-    DomainIface {
-        name: "Neuroscience",
-        d_eff: 15.0,
-        factor: 0.05,
-    },
-    DomainIface {
-        name: "Energy",
-        d_eff: 12.0,
-        factor: 0.05,
-    },
-    DomainIface {
-        name: "KernelInit",
-        d_eff: BOOT_D_EFF,
-        factor: 0.0,
-    },
-];
 
 /// Simplified FSOT scalar (T2 = 0 POC; same as monorepo bare-metal kernel).
 pub fn compute_s(d_eff: f64, delta_psi: f64, observed: bool, recent_hits: f64) -> f64 {
@@ -146,4 +99,60 @@ pub fn sign_trit(s: f64) -> i8 {
     } else {
         0
     }
+}
+
+/// Result of walking the entire domain table at boot.
+pub struct DomainWalkReport {
+    pub total: u32,
+    pub core: u32,
+    pub extension: u32,
+    pub other: u32,
+    pub emerge: u32,
+    pub damp: u32,
+    pub zero: u32,
+    pub residual_finite: u32,
+    pub s_sum_abs: f64,
+}
+
+/// Compute S + residual for **every** domain in DOMAIN_TABLE.
+pub fn walk_all_domains() -> DomainWalkReport {
+    let mut rep = DomainWalkReport {
+        total: 0,
+        core: 0,
+        extension: 0,
+        other: 0,
+        emerge: 0,
+        damp: 0,
+        zero: 0,
+        residual_finite: 0,
+        s_sum_abs: 0.0,
+    };
+    let mut i = 0usize;
+    while i < DOMAIN_TABLE.len() {
+        let d = &DOMAIN_TABLE[i];
+        let s = compute_s(d.d_eff, d.delta_psi, d.observed, d.hits);
+        let c = residual_predict(1.0, s, d.factor);
+        rep.total += 1;
+        if d.kind.as_bytes() == b"core" {
+            rep.core += 1;
+        } else if d.kind.as_bytes() == b"extension" {
+            rep.extension += 1;
+        } else {
+            rep.other += 1;
+        }
+        let t = sign_trit(s);
+        if t > 0 {
+            rep.emerge += 1;
+        } else if t < 0 {
+            rep.damp += 1;
+        } else {
+            rep.zero += 1;
+        }
+        if c.is_finite() {
+            rep.residual_finite += 1;
+        }
+        rep.s_sum_abs += if s >= 0.0 { s } else { -s };
+        i += 1;
+    }
+    rep
 }
