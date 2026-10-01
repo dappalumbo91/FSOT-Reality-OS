@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  kernel-build:
+    name: Kernel build check (no_std, nightly)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: kernel
+    steps:
+      - uses: actions/checkout@v4
+
+      # kernel/rust-toolchain.toml selects nightly + rust-src + llvm-tools-preview
+      - name: Install toolchain from rust-toolchain.toml
+        run: rustup show
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: kernel
+
+      # Build check only: booting under QEMU (bootimage + qemu-system-x86_64)
+      # is not run in CI.
+      - name: cargo build (release, custom target)
+        run: cargo build -p reality_os_kernel --release
+
+  python-smoke:
+    name: Formula shell smoke tests (Python)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pytest
+
+      - name: pytest
+        run: python -m pytest tests -q
