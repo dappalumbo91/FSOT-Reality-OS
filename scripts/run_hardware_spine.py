@@ -7,6 +7,18 @@ it locates FSOT-2.1-Lean and runs the crates/harnesses already there.
 
 from __future__ import annotations
 
+import os as _os
+from pathlib import Path as _Path
+
+_REPO_ROOT = _Path(__file__).resolve().parents[1]
+
+
+def _fsot_local_path(env, default):
+    """Local path outside the repo: $env if set, else a path relative to the repo root."""
+    _v = _os.environ.get(env, "").strip()
+    return _Path(_v) if _v else _REPO_ROOT / default
+
+
 import argparse
 import json
 import os
@@ -26,7 +38,7 @@ def resolve_monorepo() -> Path | None:
     candidates.extend(
         [
             ROOT.parent / "FSOT-2.1-Lean",
-            Path(r"C:\Users\damia\Desktop\FSOT-2.1-Lean"),
+            _fsot_local_path('FSOT_2_1_LEAN_ROOT', '../FSOT-2.1-Lean'),
             ROOT / "upstream" / "FSOT-2.1-Lean",
         ]
     )

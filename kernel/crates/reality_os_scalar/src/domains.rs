@@ -1,5 +1,5 @@
 //! AUTO-GENERATED full FSOT domain interface table for Reality OS kernel.
-//! Monorepo: C:/Users/damia/Desktop/FSOT-2.1-Lean
+//! Monorepo: FSOT-2.1-Lean
 //! Sources: domain_interfaces + green margin domains + neurolab core
 //! Regenerate: python scripts/gen_domain_table_from_monorepo.py
 //!
