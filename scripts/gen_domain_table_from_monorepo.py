@@ -13,6 +13,18 @@ D_eff / factor resolution order:
 
 from __future__ import annotations
 
+import os as _os
+from pathlib import Path as _Path
+
+_REPO_ROOT = _Path(__file__).resolve().parents[1]
+
+
+def _fsot_local_path(env, default):
+    """Local path outside the repo: $env if set, else a path relative to the repo root."""
+    _v = _os.environ.get(env, "").strip()
+    return _Path(_v) if _v else _REPO_ROOT / default
+
+
 import json
 import os
 import sqlite3
@@ -26,7 +38,7 @@ def resolve_mono() -> Path:
     candidates = [
         Path(os.environ.get("FSOT_MONOREPO_ROOT", "")),
         ROOT.parent / "FSOT-2.1-Lean",
-        Path(r"C:\Users\damia\Desktop\FSOT-2.1-Lean"),
+        _fsot_local_path('FSOT_2_1_LEAN_ROOT', '../FSOT-2.1-Lean'),
     ]
     for c in candidates:
         if c and (c / "data" / "fsot_atlas.sqlite").is_file():
