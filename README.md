@@ -84,6 +84,25 @@ source in this repository** and built/booted **here**, not via monorepo Python w
 
 Upstream atlas / multiprover: https://github.com/dappalumbo91/FSOT-2.1-Lean  
 
+## Historical pin and VM word format (note, 2026-10-01)
+
+- **D1D38A is a historical pin.** `engine/fsot_compute.py` and `engine/fsot_compute_AUTHORITY_PIN.json` are kept at
+  D1D38A on purpose and are not re-vendored. That authority copy computes `C_EFF` with `mpf("0.01")` where the live
+  FSOT-2.1-Lean authority **AEB2AD** uses π⁻⁴, so the constants in this tree (`reality_os/core.py`, the
+  `reality_os_scalar` / `reality_os_hw` crates, the QEMU log `data/reality_os_qemu_serial.log` with
+  `collapse_theta = 0.917466377465`) are the D1D38A values: C_EFF 0.9577022026205613, K 0.42022166416069665,
+  Θ 0.9174663774653723. AEB2AD gives C_EFF 0.9577480213378242, K 0.4201087636498879, Θ 0.9175102712064876, and the
+  domain table here predates the hub's current table. Read results in this repo as D1D38A results. Details:
+  FSOT-2.1-Cpp [`docs/TRIT_SPEC.md`](https://github.com/dappalumbo91/FSOT-2.1-Cpp/blob/main/docs/TRIT_SPEC.md) T-4.
+- **The FSOTB VM stores binary integers labelled as trits.** `kernel/crates/reality_os_trinary/src/lib.rs` holds the
+  25 "27-trit" registers and the stack as `i32` (`Vm::regs: [i32; 25]`), and `ADDT`/`SUBT`/`MULT` are
+  `wrapping_add`/`wrapping_sub`/`wrapping_mul`, i.e. two's-complement arithmetic that wraps at 2³², not
+  balanced-ternary arithmetic on 27 trits (range ±(3²⁷−1)/2). A value becomes a trit only when an op collapses it to
+  a sign (e.g. `COLLAPSE` → `sign_trit`). The VM is left as it is. An exact balanced-ternary word with add/sub/mul/div and a wrap flag is
+  `fsot::bt::Word27` in FSOT-2.1-Cpp
+  [`include/fsot/ternary.hpp`](https://github.com/dappalumbo91/FSOT-2.1-Cpp/blob/main/include/fsot/ternary.hpp)
+  (canonical trit formats: `docs/TRIT_SPEC.md`), for use if the opcode overflow semantics are ever fixed (TRIT_SPEC T-5).
+
 ## Status checkpoint
 
 **OS feature work paused** to prioritize **FSOT-2.1-Lean** (empirical residual gates + multiprover + Mathlib).  
